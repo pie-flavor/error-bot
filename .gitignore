@@ -1,0 +1,11 @@
+.*
+!.gitignore
+!.travis.yml
+*.js
+!/Gruntfile.js
+*.map
+node_modules/
+*.log
+*.tmp
+*.tmp.*
+src/def/

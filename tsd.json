@@ -1,0 +1,15 @@
+{
+	"version": "v4",
+	"repo": "borisyankov/DefinitelyTyped",
+	"ref": "master",
+	"path": "src/def",
+	"bundle": "src/def/tsd.d.ts",
+	"installed": {
+		"node/node.d.ts": {
+			"commit": "017cb72c292ba24e70afad99c12bc04778b7261c"
+		},
+		"q/Q.d.ts": {
+			"commit": "017cb72c292ba24e70afad99c12bc04778b7261c"
+		}
+	}
+}
