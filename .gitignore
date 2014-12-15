@@ -2,10 +2,11 @@
 !.gitignore
 !.travis.yml
 *.js
+*.d.ts
+!src/def/all.d.ts
 !/Gruntfile.js
 *.map
 node_modules/
 *.log
 *.tmp
 *.tmp.*
-src/def/

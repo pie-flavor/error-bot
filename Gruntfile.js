@@ -9,9 +9,16 @@ module.exports = function( grunt ) {
 			referenceDef: '<%= opt.defDir %>/reference.d.ts'
 		},
 		clean: [
-			'<%= opt.outDir %>//*',
-			'<%= tsdcfg.bundle %>',
-			'<%= opt.referenceDef %>'
+			[ '<%= opt.outDir %>//*',
+				'!<%= opt.outDir %>/data',
+				'!<%= opt.outDir %>/data//*'
+			],
+			[
+				'<%= opt.defDir %>//*',
+				'!<%= opt.defDir %>/all.d.ts',
+				'<%= tsdcfg.bundle %>',
+				'<%= opt.referenceDef %>'
+			]
 		],
 		tsd: {
 			refresh: {
@@ -40,7 +47,7 @@ module.exports = function( grunt ) {
 			default: {
 				src: [ '<%= opt.srcDir %>/**/*.ts', '!<%= opt.srcDir %>/**/*.d.ts' ],
 				outDir: '<%= opt.outDir %>',
-				reference: '<%= referenceDef %>'
+				reference: '<%= opt.referenceDef %>'
 			}
 		}
 	} );
