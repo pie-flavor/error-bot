@@ -10,6 +10,9 @@
 		},
 		"q/Q.d.ts": {
 			"commit": "0d595e843d872c24d8f45dd7df9c15404e6daff4"
+		},
+		"q-io/Q-io.d.ts": {
+			"commit": "0d595e843d872c24d8f45dd7df9c15404e6daff4"
 		}
 	}
 }

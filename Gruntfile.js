@@ -1,7 +1,10 @@
 module.exports = function( grunt ) {
+	var pkg = grunt.file.readJSON( 'package.json' ),
+		tsdcfg = grunt.file.readJSON( 'tsd.json' );
+
 	grunt.initConfig( {
-		pkg: grunt.file.readJSON( 'package.json' ),
-		tsdcfg: grunt.file.readJSON( 'tsd.json' ),
+		pkg: pkg,
+		tsdcfg: tsdcfg,
 		opt: {
 			srcDir: 'src',
 			outDir: 'out',
@@ -49,12 +52,21 @@ module.exports = function( grunt ) {
 				outDir: '<%= opt.outDir %>',
 				reference: '<%= opt.referenceDef %>'
 			}
+		},
+		version: {
+			options: {
+				pkg: pkg
+			},
+			settings: {
+				src: [ '<%= opt.outDir %>/data/settings.json' ]
+			}
 		}
 	} );
 
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
 	grunt.loadNpmTasks( 'grunt-tsd' );
 	grunt.loadNpmTasks( 'grunt-ts' );
+	grunt.loadNpmTasks( 'grunt-version' );
 
-	grunt.registerTask( 'default', [ 'clean', 'tsd', 'ts' ] );
+	grunt.registerTask( 'default', [ 'clean', 'tsd', 'ts', 'version' ] );
 };
