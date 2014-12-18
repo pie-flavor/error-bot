@@ -1,0 +1,29 @@
+{
+	"tasks": [
+		{
+			"methods": [
+				{
+					"method": "logIn"
+				}
+			],
+			"every": 3600000
+		},
+		{
+			"methods": [
+				{
+					"method": "messageBus"
+				}
+			],
+			"every": 1000
+		}
+	],
+	"latency": 10,
+	"version": "0.0.0",
+	"logLevel": "Info",
+	"proxy": "http://localhost:55555/",
+	"baseUrl": "http://what.thedailywtf.com/",
+	"account": {
+		"username": "error_bot",
+		"password": "hunter2"
+	}
+}

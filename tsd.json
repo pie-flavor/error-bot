@@ -6,13 +6,13 @@
 	"bundle": "src/def/tsd.d.ts",
 	"installed": {
 		"node/node.d.ts": {
-			"commit": "0d595e843d872c24d8f45dd7df9c15404e6daff4"
+			"commit": "8e02d8df4e476fe08ec3f5e4dc36db4e645ea34f"
 		},
 		"q/Q.d.ts": {
-			"commit": "0d595e843d872c24d8f45dd7df9c15404e6daff4"
+			"commit": "8e02d8df4e476fe08ec3f5e4dc36db4e645ea34f"
 		},
 		"q-io/Q-io.d.ts": {
-			"commit": "0d595e843d872c24d8f45dd7df9c15404e6daff4"
+			"commit": "8e02d8df4e476fe08ec3f5e4dc36db4e645ea34f"
 		}
 	}
 }
