@@ -22,6 +22,11 @@ module Discourse {
 		return arr.map( kvp => kvp.map( v => encodeURIComponent( v ) ).join( '=' ) ).join( '&' );
 	}
 
+	function checkStatusOK( response: $http.Response ): q.Promise<$http.Response> {
+		if( response.status < 200 || response.status >= 300 ) return q.reject( null );
+		return q.resolve( response );
+	}
+
 	export class Session {
 		constructor( settings: Settings ) {
 			this.settings = settings;
@@ -76,7 +81,7 @@ module Discourse {
 				} );
 			}
 
-			return getParams.then( params => this.request( params ) );
+			return getParams.then( params => this.request( params ) ).then( checkStatusOK );
 		}
 
 		private post( url: string, data?: Object, headers?: Object ) {
@@ -104,8 +109,6 @@ module Discourse {
 		}
 
 		public logIn() {
-			this.reset();
-
 			return this.postJSON( 'session', {
 				login: this.settings.account.username,
 				password: this.settings.account.password
