@@ -4,7 +4,6 @@ import q = require( 'q' );
 
 import $http = require( 'q-io/http' );
 import $apps = require( 'q-io/http-apps' );
-import $cookie = require( 'q-io/http-cookie' );
 
 import extend = require( 'node.extend' );
 
@@ -33,12 +32,12 @@ module Discourse {
 			var uri = url2.parse( this.settings.baseUrl + url );
 
 			var getParams = q.resolve<any>( {
-					url: uri.href,
+					path: uri.path,
 					method: method,
 					charset: encoding,
 					headers: extend( {}, headers, {
 						'User-Agent': 'error-bot ' + this.settings.version,
-						Host: uri.hostname
+						host: uri.hostname // key must be lowercase
 					} ),
 					body: []
 				} );
@@ -48,8 +47,7 @@ module Discourse {
 					delete params.url;
 					var proxy = url2.parse( this.settings.proxy );
 					params.host = proxy.hostname;
-					if( proxy.port ) params.port = proxy.port;
-					params.path = uri.href;
+					params.port = proxy.port;
 					return params;
 				} );
 			}
@@ -78,29 +76,7 @@ module Discourse {
 				} );
 			}
 
-			getParams = getParams.then( params => {
-				var cookies = [];
-				if( params.headers.Cookie ) cookies.push( params.headers.Cookie );
-				for( var key in this.cookies ) if( this.cookies.hasOwnProperty( key ) ) {
-					var cookie = this.cookies[ key ];
-					cookies.push( cookie.key + '=' + cookie.value );
-				}
-				if( cookies.length ) params.headers.Cookie = cookies.join( '; ' );
-				return params
-			} );
-
-			return getParams
-				.then( params => $http.request( params ) )
-				.tap( response => {
-					var setCookies = response.headers[ 'set-cookie' ] || [];
-					if( !Array.isArray( setCookies ) ) setCookies = [ setCookies ];
-
-					setCookies
-					.map( $cookie.parse )
-					.forEach( cookie => {
-						this.cookies[ cookie.key ] = cookie;
-					} );
-				} );
+			return getParams.then( params => this.request( params ) );
 		}
 
 		private post( url: string, data?: Object, headers?: Object ) {
@@ -147,7 +123,7 @@ module Discourse {
 
 		public reset() {
 			this.csrfPromise = null;
-			this.cookies = {};
+			this.request = $apps.CookieJar( $http.request );
 			this.clientId = uuid.v4();
 		}
 
@@ -162,7 +138,7 @@ module Discourse {
 		}
 
 		private csrfPromise: q.IPromise<string>;
-		private cookies: { [ key: string ]: $cookie.Cookie } = {};
+		private request: ( request: $http.Request ) => q.Promise<$http.Response>;
 		private clientId: string;
 		private settings: Settings;
 	}
