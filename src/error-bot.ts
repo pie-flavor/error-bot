@@ -4,8 +4,6 @@ import q = require( 'q' );
 
 import $fs = require( 'q-io/fs' );
 
-import $http = require( 'q-io/http' );
-
 import Logging = require( './logging' );
 
 import Discourse = require( './discourse' );
@@ -51,8 +49,14 @@ class ErrorBot {
 
 	public logger: Logging.Logger;
 
-	public enqueue( task: () => any ) {
-		this.queue = this.queue.then( () => q.resolve( task() ) );
+	public enqueue( task: () => any, retries = 0 ) {
+		var fn = () => q.resolve( task() );
+
+		this.queue = this.queue.then( fn );
+		for( var i = 0; i < retries; ++i ) {
+			this.queue = this.queue.then( undefined, () => Time.wait( this.settings.retryDelay ).then( fn ) );
+		}
+		this.queue.done();
 	}
 }
 

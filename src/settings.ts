@@ -3,6 +3,7 @@
 interface Settings {
 	tasks: Array<TaskSettings>;
 	latency: number;
+	retryDelay: number;
 	version: string;
 	logLevel: string;
 	proxy?: string;
@@ -21,4 +22,5 @@ interface TaskSettings {
 		params?: Array<any>;
 	}>;
 	every: number;
+	retries?: number;
 }
