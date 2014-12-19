@@ -64,10 +64,6 @@ declare module 'node.extend' {
 	export = extend;
 }
 
-declare module 'node-uuid' {
-	export function v4(): string;
-}
-
 declare module 'q-io/http-apps' {
 	export function CookieJar( app: ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response> ): ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response>;
 
