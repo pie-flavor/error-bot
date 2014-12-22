@@ -115,8 +115,8 @@ module Discourse {
 			} );
 		}
 
-		public messageBus() {
-			return this.postJSON( 'message-bus/' + this.clientId + '/poll' );
+		public messageBus( channels?: { [ channel: string ]: number } ) {
+			return this.postJSON( 'message-bus/' + this.clientId + '/poll', channels );
 		}
 
 		private getCsrf() {
@@ -128,6 +128,29 @@ module Discourse {
 			this.csrfPromise = null;
 			this.request = $apps.CookieJar( $http.request );
 			this.clientId = uuid.v4();
+		}
+
+		public markRead( topicId: number, ...postIds: Array<number> ) {
+			var topicTime = 4242;
+
+			return this.postJSON( 'topic/timings',
+				postIds.reduce(
+					( o, postId ) => { o[ 'timings[' + postId + ']' ] = topicTime; },
+					{ topic_id: topicId, topic_time: topicTime }
+				)
+			);
+		}
+
+		public getPost( postId: number ) {
+			return this.getJSON( 'posts/' + postId + '.json' );
+		}
+
+		public getPostsForTopic( topicId: number ) {
+			return this.getJSON( 't/' + topicId + '/posts.json' );
+		}
+
+		public getTopic( topicId: number ) {
+			return this.getJSON( 't/' + topicId + '.json?include_raw=1' );
 		}
 
 		public reply( text: string, topicId: number, categoryId: number ) {
