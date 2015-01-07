@@ -3,7 +3,14 @@
 		{
 			"methods": [
 				{
+					"method": "reset"
+				},
+				{
 					"method": "logIn"
+				},
+				{
+					"method": "subscribe",
+					"params": [ "/topic/5556" ]
 				}
 			],
 			"every": 3600000,
@@ -12,10 +19,10 @@
 		{
 			"methods": [
 				{
-					"method": "messageBus"
+					"method": "pollSubscriptions"
 				}
 			],
-			"every": 1000
+			"every": 2500
 		}
 	],
 	"latency": 10,
