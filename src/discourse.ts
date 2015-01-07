@@ -115,6 +115,45 @@ module Discourse {
 			} );
 		}
 
+		public subscribe( channel: string, callback?: ( message: Message, handle: Object ) => void, lastMessage = -1 ) {
+			var handle = {};
+
+			this.subscriptions.push( { channel: channel, callback: callback, handle: handle, lastMessage: lastMessage } )
+		}
+
+		public unsubscribe( handle: Object ) {
+			this.subscriptions = this.subscriptions.filter( subscription => subscription.handle !== handle );
+		}
+
+		public pollSubscriptions() {
+			return this.messageBus(
+					this.subscriptions.reduce( ( o, subscription ) => {
+						if( !o.hasOwnProperty( subscription.channel ) || o[ subscription.channel ] > subscription.lastMessage ) {
+							o[ subscription.channel ] = subscription.lastMessage;
+						}
+						return o;
+					}, {} )
+				)
+				.then( messages => {
+					this.processMessages( messages );
+				} );
+		}
+
+		private processMessages( messages: Array<Message> ) {
+			if( !messages ) return;
+
+			messages.forEach( message => {
+				this.subscriptions.filter( subscription => subscription.channel === message.channel ).forEach( subscription => {
+					if( message.message_id > subscription.lastMessage ) {
+						subscription.lastMessage = message.message_id;
+						if( typeof subscription.callback === 'function' ) {
+							subscription.callback( message, subscription.handle );
+						}
+					}
+				} );
+			} );
+		}
+
 		public messageBus( channels?: { [ channel: string ]: number } ) {
 			return this.postJSON( 'message-bus/' + this.clientId + '/poll', channels );
 		}
@@ -125,6 +164,7 @@ module Discourse {
 		}
 
 		public reset() {
+			this.subscriptions = [];
 			this.csrfPromise = null;
 			this.request = $apps.CookieJar( $http.request );
 			this.clientId = uuid.v4();
@@ -135,7 +175,10 @@ module Discourse {
 
 			return this.postJSON( 'topic/timings',
 				postIds.reduce(
-					( o, postId ) => { o[ 'timings[' + postId + ']' ] = topicTime; },
+					( o, postId ) => {
+						o[ 'timings[' + postId + ']' ] = topicTime;
+						return o;
+					},
 					{ topic_id: topicId, topic_time: topicTime }
 				)
 			);
@@ -163,10 +206,18 @@ module Discourse {
 			} );
 		}
 
+		private subscriptions: Array<Subscription> = [];
 		private csrfPromise: q.IPromise<string>;
 		private request: ( request: $http.Request ) => q.Promise<$http.Response>;
 		private clientId: string;
 		private settings: Settings;
+	}
+
+	interface Subscription {
+		channel: string;
+		callback: ( message: Message, handle: Object ) => void
+		handle: Object;
+		lastMessage: number;
 	}
 
 	export interface BadgeType {
@@ -251,6 +302,13 @@ module Discourse {
 		action_type: number;
 		count: number;
 		id: number;
+	}
+
+	export interface Message {
+		global_id: number;
+		message_id: number;
+		channel: string;
+		data: any;
 	}
 
 	export enum PostActionType {
