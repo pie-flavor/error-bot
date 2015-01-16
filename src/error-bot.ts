@@ -3,6 +3,8 @@
 import q = require( 'q' );
 
 import $fs = require( 'q-io/fs' );
+import $http = require( 'q-io/http' );
+import $apps = require( 'q-io/http-apps' );
 
 import Logging = require( './logging' );
 
@@ -14,7 +16,7 @@ class ErrorBot {
 	constructor( settings: Settings ) {
 		this.settings = settings;
 		this.logger = new Logging.ConsoleLogger( Logging.LogLevel[ settings.logLevel ] );
-		this.session = new Discourse.Session( this.settings );
+		this.session = new Discourse.Session( () => $apps.CookieJar( $http.request ), this.settings );
 	}
 
 	public run() {

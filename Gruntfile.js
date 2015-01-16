@@ -60,6 +60,14 @@ module.exports = function( grunt ) {
 			settings: {
 				src: [ '<%= opt.outDir %>/data/settings.json' ]
 			}
+		},
+		vows: {
+			all: {
+				options: {
+					reporter: 'spec'
+				},
+				src: '<%= opt.outDir %>/spec/**/*.js'
+			}
 		}
 	} );
 
@@ -67,6 +75,7 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-tsd' );
 	grunt.loadNpmTasks( 'grunt-ts' );
 	grunt.loadNpmTasks( 'grunt-version' );
+	grunt.loadNpmTasks( 'grunt-vows-runner' );
 
-	grunt.registerTask( 'default', [ 'clean', 'tsd', 'ts', 'version' ] );
+	grunt.registerTask( 'default', [ 'clean', 'tsd', 'ts', 'version', 'vows' ] );
 };

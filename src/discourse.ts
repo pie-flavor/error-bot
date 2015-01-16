@@ -28,7 +28,8 @@ module Discourse {
 	}
 
 	export class Session {
-		constructor( settings: Settings ) {
+		constructor( requestHandlerFactory: Factory<$http.RequestHandler>, settings: Settings ) {
+			this.requestHandlerFactory = requestHandlerFactory
 			this.settings = settings;
 			this.reset();
 		}
@@ -166,8 +167,8 @@ module Discourse {
 		public reset() {
 			this.subscriptions = [];
 			this.csrfPromise = null;
-			this.request = $apps.CookieJar( $http.request );
 			this.clientId = uuid.v4();
+			this.request = this.requestHandlerFactory();
 		}
 
 		public markRead( topicId: number, ...postIds: Array<number> ) {
@@ -207,6 +208,7 @@ module Discourse {
 		}
 
 		private subscriptions: Array<Subscription> = [];
+		private requestHandlerFactory: Factory<$http.RequestHandler>;
 		private csrfPromise: q.IPromise<string>;
 		private request: ( request: $http.Request ) => q.Promise<$http.Response>;
 		private clientId: string;
