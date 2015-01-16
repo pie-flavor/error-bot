@@ -144,8 +144,12 @@ module Discourse {
 			if( !messages ) return;
 
 			messages.forEach( message => {
-				this.subscriptions.filter( subscription => subscription.channel === message.channel ).forEach( subscription => {
-					if( message.message_id > subscription.lastMessage ) {
+				this.subscriptions.forEach( subscription => {
+					if( message.channel === '/__status' && message.data.hasOwnProperty( subscription.channel ) ) {
+						subscription.lastMessage = message.data[ subscription.channel ];
+					}
+
+					if( subscription.channel === message.channel && message.message_id > subscription.lastMessage ) {
 						subscription.lastMessage = message.message_id;
 						if( typeof subscription.callback === 'function' ) {
 							subscription.callback( message, subscription.handle );
@@ -156,7 +160,7 @@ module Discourse {
 		}
 
 		public messageBus( channels?: { [ channel: string ]: number } ) {
-			return this.postJSON( 'message-bus/' + this.clientId + '/poll', channels );
+			return this.postJSON( 'message-bus/' + this.clientId + '/poll?dlp=t', channels );
 		}
 
 		private getCsrf() {
@@ -167,8 +171,8 @@ module Discourse {
 		public reset() {
 			this.subscriptions = [];
 			this.csrfPromise = null;
-			this.clientId = uuid.v4();
 			this.request = this.requestHandlerFactory();
+			this.clientId = uuid.v4().replace( /-/g, '' );
 		}
 
 		public markRead( topicId: number, ...postIds: Array<number> ) {

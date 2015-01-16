@@ -64,7 +64,17 @@ declare module 'node.extend' {
 	export = extend;
 }
 
-declare module 'q-io/http-apps' {
-	export function CookieJar( app: ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response> ): ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response>;
+declare module 'q-io/http' {
+	export interface RequestHandler {
+		( app: ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response> ): ( request: QioHTTP.Request ) => Q.Promise<QioHTTP.Response>;
+	}
+}
 
+declare module 'q-io/http-apps' {
+	import $http = require( 'q-io/http' );
+	export var CookieJar: $http.RequestHandler;
+}
+
+interface Factory<T> {
+	( ...args: Array<any> ): T;
 }
