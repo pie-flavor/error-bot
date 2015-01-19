@@ -33,7 +33,7 @@ class Ioc {
 	public build<T>( factory: any, params?: { [ name: string ]: any; }, trace: Array<string> = [] ): T {
 		if( typeof factory === 'string' ) {
 			if( trace.indexOf( factory ) >= 0 ) throw new Error( 'Circular dependency detected: ' + trace.concat( factory ).join( ' -> ' ) );
-			trace.concat( factory );
+			trace.push( factory );
 			factory = this.getFactory<T>( <string>factory );
 		}
 		if( !factory ) return null;
