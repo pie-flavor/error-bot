@@ -1,28 +1,31 @@
 module.exports = function( grunt ) {
 	var pkg = grunt.file.readJSON( 'package.json' ),
-		tsdcfg = grunt.file.readJSON( 'tsd.json' );
-
-	grunt.initConfig( {
-		pkg: pkg,
-		tsdcfg: tsdcfg,
-		opt: {
+		tsdcfg = grunt.file.readJSON( 'tsd.json'),
+		opt = {
 			srcDir: 'src',
 			outDir: 'out',
 			defDir: '<%= tsdcfg.path %>',
 			referenceDef: '<%= opt.defDir %>/reference.d.ts'
-		},
-		clean: [
-			[ '<%= opt.outDir %>//*',
-				'!<%= opt.outDir %>/data',
-				'!<%= opt.outDir %>/data//*'
+		};
+
+	grunt.initConfig( {
+		pkg: pkg,
+		tsdcfg: tsdcfg,
+		opt: opt,
+		clean: {
+			before: [
+				[
+					'<%= opt.outDir %>//*',
+					'!<%= opt.outDir %>/data',
+					'!<%= opt.outDir %>/data//*'
+				],
+				[
+					'<%= tsdcfg.bundle %>',
+					'<%= opt.referenceDef %>'
+				]
 			],
-			[
-				'<%= opt.defDir %>//*',
-				'!<%= opt.defDir %>/all.d.ts',
-				'<%= tsdcfg.bundle %>',
-				'<%= opt.referenceDef %>'
-			]
-		],
+			after: [ '**/.baseDir.*' ]
+		},
 		tsd: {
 			refresh: {
 				options: {
@@ -30,6 +33,24 @@ module.exports = function( grunt ) {
 					latest: true,
 					overwrite: true,
 					config: './tsd.json'
+				}
+			}
+		},
+		copy: {
+			options: {},
+			ts: {
+				files: [ {
+					expand: true,
+					cwd: '<%= opt.srcDir %>',
+					src: [ '**/*.ts' ],
+					dest: '<%= opt.outDir %>',
+					filter: 'isFile'
+				} ],
+				options: {
+					process: function( contents, filename ) {
+						if( /\.d\.ts$/i.test( filename ) ) return contents;
+						else return '///ts:ref=all.d.ts\n' + contents;
+					}
 				}
 			}
 		},
@@ -48,7 +69,7 @@ module.exports = function( grunt ) {
 				failOnTypeErrors: false
 			},
 			default: {
-				src: [ '<%= opt.srcDir %>/**/*.ts', '!<%= opt.srcDir %>/**/*.d.ts' ],
+				src: [ '<%= opt.outDir %>/**/*.ts' ],
 				outDir: '<%= opt.outDir %>',
 				reference: '<%= opt.referenceDef %>'
 			}
@@ -73,9 +94,10 @@ module.exports = function( grunt ) {
 
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
 	grunt.loadNpmTasks( 'grunt-tsd' );
+	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-ts' );
 	grunt.loadNpmTasks( 'grunt-version' );
 	grunt.loadNpmTasks( 'grunt-vows-runner' );
 
-	grunt.registerTask( 'default', [ 'clean', 'tsd', 'ts', 'version', 'vows' ] );
+	grunt.registerTask( 'default', [ 'clean:before', 'copy', 'tsd', 'ts', 'version', 'clean:after', 'vows' ] );
 };

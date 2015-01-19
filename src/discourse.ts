@@ -1,5 +1,3 @@
-/// <reference path="def/all.d.ts"/>
-
 import q = require( 'q' );
 
 import $http = require( 'q-io/http' );

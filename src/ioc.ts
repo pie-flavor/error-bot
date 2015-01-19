@@ -1,5 +1,3 @@
-/// <reference path="def/all.d.ts"/>
-
 class Ioc {
 	private static getFunctionParameters( fn: Function ) {
 		var str = Function.prototype.toString.call( fn );

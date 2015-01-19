@@ -1,4 +1,3 @@
-/// <reference path="../def/all.d.ts"/>
 
 import Ioc = require( '../ioc' );
 import assert = require( 'assert' );

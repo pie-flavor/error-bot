@@ -2,20 +2,20 @@
 	"version": "v4",
 	"repo": "borisyankov/DefinitelyTyped",
 	"ref": "master",
-	"path": "src/def",
-	"bundle": "src/def/tsd.d.ts",
+	"path": "out/def",
+	"bundle": "out/def/tsd.d.ts",
 	"installed": {
 		"node/node.d.ts": {
-			"commit": "aaf45c99861ea0e5838f076627609058a85e6b4b"
+			"commit": "2deb7cab5304d20e82407ceab840fd63ddeb999f"
 		},
 		"q/Q.d.ts": {
-			"commit": "aaf45c99861ea0e5838f076627609058a85e6b4b"
+			"commit": "2deb7cab5304d20e82407ceab840fd63ddeb999f"
 		},
 		"q-io/Q-io.d.ts": {
-			"commit": "aaf45c99861ea0e5838f076627609058a85e6b4b"
+			"commit": "2deb7cab5304d20e82407ceab840fd63ddeb999f"
 		},
 		"node-uuid/node-uuid.d.ts": {
-			"commit": "aaf45c99861ea0e5838f076627609058a85e6b4b"
+			"commit": "2deb7cab5304d20e82407ceab840fd63ddeb999f"
 		}
 	}
 }

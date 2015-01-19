@@ -1,5 +1,3 @@
-/// <reference path="def/all.d.ts"/>
-
 interface Settings {
 	tasks: Array<TaskSettings>;
 	latency: number;

@@ -2,8 +2,8 @@
 !.gitignore
 !.travis.yml
 *.js
-*.d.ts
-!src/def/all.d.ts
+out/
+!out/data/
 !/Gruntfile.js
 *.map
 node_modules/
