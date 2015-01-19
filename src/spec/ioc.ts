@@ -24,10 +24,10 @@ vows.describe( 'IoC' ).addBatch( {
 	'Building a circular reference should': {
 		topic: () =>
 			( new Ioc ).setFactories( {
-			$circ1: $circ2 => null,
-			$circ2: $circ1 => null,
-			$circ3: $circ3 => null
-		} ),
+				$circ1: $circ2 => null,
+				$circ2: $circ1 => null,
+				$circ3: $circ3 => null
+			} ),
 		'throw an error': ( ioc: Ioc ) => {
 			assert.throws( () => ioc.build( '$circ1' ) );
 			assert.throws( () => ioc.build( '$circ2' ) );
