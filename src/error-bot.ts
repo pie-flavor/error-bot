@@ -6,6 +6,8 @@ import $fs = require( 'q-io/fs' );
 import $http = require( 'q-io/http' );
 import $apps = require( 'q-io/http-apps' );
 
+import Ioc = require( './ioc' );
+
 import Logging = require( './logging' );
 
 import Discourse = require( './discourse' );
@@ -13,19 +15,17 @@ import Discourse = require( './discourse' );
 import Time = require( './time' );
 
 class ErrorBot {
-	constructor( settings: Settings ) {
+	constructor( settings: Settings, logger: Logging.Logger, session: Discourse.Session, tasks: Array<Task> ) {
 		this.settings = settings;
-		this.logger = new Logging.ConsoleLogger( Logging.LogLevel[ settings.logLevel ] );
-		this.session = new Discourse.Session( () => $apps.CookieJar( $http.request ), this.settings );
+		this.logger = logger;
+		this.session = session;
+		this.tasks = tasks;
 	}
 
 	public run() {
-		q.onerror =
-			err => {
-				console.error( err );
-			};
-
-		this.tasks = this.settings.tasks.map( taskSettings => new Task( taskSettings ) );
+		this.session.subscribe( '/topic/5556', data => {
+			console.dir( data );
+		} );
 
 		this.queue = q.resolve( null );
 
@@ -63,9 +63,9 @@ class ErrorBot {
 }
 
 class Task {
-	constructor( settings: TaskSettings ) {
+	constructor( settings: TaskSettings, stopWatch: Time.StopWatch ) {
 		this.settings = settings;
-		this.timer = new Time.StopWatch;
+		this.timer = stopWatch;
 	}
 
 	accept( bot: ErrorBot ) {
@@ -83,7 +83,37 @@ class Task {
 	private timer: Time.StopWatch;
 }
 
+q.onerror =
+		err => {
+	console.error( err );
+};
+
 $fs.read( 'data/settings.json' )
 .then( settings => {
-	new ErrorBot( JSON.parse( settings ) ).run();
+	settings = JSON.parse( settings );
+
+	var ioc =
+		( new Ioc )
+			.setFactories( {
+				logLevel: settings => settings.logLevel
+			} )
+			.setConstructors( {
+				logger: Logging.ConsoleLogger,
+				stopWatch: Time.StopWatch
+			} )
+			.setInstances( {
+				settings: settings,
+				requestHandlerFactory: () => $apps.CookieJar( $http.request )
+			} )
+			.setFactoriesSingle( {
+				tasks: settings => settings.tasks.map( taskSettings =>
+					ioc.buildNew( Task, { settings: taskSettings } )
+				)
+			} )
+			.setConstructorsSingle( {
+				session: Discourse.Session,
+				bot: ErrorBot
+			} );
+
+	ioc.build<ErrorBot>( 'bot' ).run();
 } );
