@@ -56,7 +56,7 @@ vows.describe( 'IoC' ).addBatch( {
 		'supply the correct parameters': ( ioc: Ioc ) => {
 			var $foo = ioc.build<Foo>( '$foo' ),
 				$bar = ioc.build<Bar>( '$bar' );
-			assert.isNull( $foo.param1 );
+			assert.isUndefined( $foo.param1 );
 			assert.isUndefined( $foo.param2 );
 			assert.isUndefined( $foo.param3 );
 			assert.instanceOf( $bar.param1, Foo );
