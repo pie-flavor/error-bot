@@ -61,8 +61,12 @@ class Ioc {
 		return this;
 	}
 
-	public unsetFactory<T>( name: string ) {
-		return delete this.factory[ name ];
+	public unsetFactory( name: string ): void {
+		delete this.factory[ name ];
+	}
+
+	public unsetFactories( names: Array<string> ): void {
+		Array.prototype.forEach.call( names, name => this.unsetFactory( name ) );
 	}
 
 	public setConstructor<T>( name: string, ctor: Function ): Ioc {

@@ -50,8 +50,8 @@ vows.describe( 'IoC' ).addBatch( {
 			assert.instanceOf( ioc.build<Bar>( '$bar' ), Bar );
 		},
 		'return a new instance': ( ioc: Ioc ) => {
-			assert.notEqual( ioc.build( '$foo' ), ioc.build( '$foo' ) );
-			assert.notEqual( ioc.build( '$bar' ), ioc.build( '$bar' ) );
+			assert.notEqual( ioc.build<Foo>( '$foo' ), ioc.build<Foo>( '$foo' ) );
+			assert.notEqual( ioc.build<Bar>( '$bar' ), ioc.build<Bar>( '$bar' ) );
 		},
 		'supply the correct parameters': ( ioc: Ioc ) => {
 			var $foo = ioc.build<Foo>( '$foo' ),
@@ -114,6 +114,36 @@ vows.describe( 'IoC' ).addBatch( {
 		'supply null': ( ioc: Ioc ) => {
 			var $foo = ioc.build<Foo>( '$foo' );
 			assert.isNull( $foo.param1 );
+		}
+	},
+	'Unsetting a factory should': {
+		topic: () => {
+			var ioc =
+				( new Ioc )
+				.setConstructor( '$foo', Foo )
+				.setFactory( '$bar', () => new Foo )
+				.setInstance( '$baz', new Foo );
+
+			ioc.unsetFactories( [ '$foo', '$qux' ] );
+			ioc.unsetFactory( '$baz' );
+
+			return ioc;
+		},
+		'clear the mapping': ( ioc: Ioc ) => {
+			assert.isNull( ioc.build<Foo>( '$foo' ) );
+			assert.isNull( ioc.build<Foo>( '$baz' ) );
+		},
+		'leave other mappings in place': ( ioc: Ioc ) => {
+			assert.instanceOf( ioc.build<Foo>( '$bar' ), Foo );
+		}
+	},
+	'Creating a factory that already exists should': {
+		topic: () =>
+			( new Ioc )
+			.setFactory( '$foo', () => new Foo )
+			.setFactory( '$foo', () => new Bar ),
+		'replace the old mapping': ( ioc: Ioc ) => {
+			assert.instanceOf( ioc.build<Bar>( '$foo' ), Bar );
 		}
 	}
 } ).export( module );
