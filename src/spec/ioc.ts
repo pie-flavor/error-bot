@@ -35,9 +35,7 @@ vows.describe( 'IoC' ).addBatch( {
 		}
 	},
 	'Building a missing factory should': {
-		topic() {
-			return new Ioc;
-		},
+		topic: () => new Ioc,
 		'return null': ( ioc: Ioc ) => {
 			assert.isNull( ioc.build<Foo>( '$foo' ) );
 		}

@@ -9,7 +9,7 @@ class Ioc {
 		str = str.replace( /[\r\n\s]/g, '' ); // remove whitespace
 		str = str.replace( /\/\*.*?\*\//g, '' ); // remove multi-line comments
 
-		return ( /\((.*?)\)/.exec( str )[ 1 ] || '' ).split( ',' );
+		return ( ( /\((.*?)\)/.exec( str ) || [] )[ 1 ] || '' ).split( ',' ).filter( s => !!s );
 	}
 
 	private supply<T>( fn: Function, that: T, params: { [ name: string ]: any; } = {}, trace?: Array<string> ) {
@@ -55,7 +55,7 @@ class Ioc {
 	}
 
 	public setFactories<T>( factories: { [ name: string ]: Factory<T>; } ): Ioc {
-		for( var name in factories ) if( Object.hasOwnProperty.call( factories, name ) ) {
+		for( var name in factories ) if( Object.prototype.hasOwnProperty.call( factories, name ) ) {
 			this.setFactory<T>( name, factories[ name ] );
 		}
 		return this;
@@ -71,7 +71,7 @@ class Ioc {
 	}
 
 	public setConstructors<T>( ctors: { [ name: string ]: Function; } ): Ioc {
-		for( var name in ctors ) if( Object.hasOwnProperty.call( ctors, name ) ) {
+		for( var name in ctors ) if( Object.prototype.hasOwnProperty.call( ctors, name ) ) {
 			this.setConstructor<T>( name, ctors[ name ] );
 		}
 		return this;
@@ -87,7 +87,7 @@ class Ioc {
 	}
 
 	public setFactoriesSingle<T>( singletons: { [ name: string ]: Factory<T>; }, params?: { [ name: string ]: any; } ): Ioc {
-		for( var name in singletons ) if( Object.hasOwnProperty.call( singletons, name ) ) {
+		for( var name in singletons ) if( Object.prototype.hasOwnProperty.call( singletons, name ) ) {
 			this.setFactorySingle<T>( name, singletons[ name ], params );
 		}
 		return this;
@@ -103,7 +103,7 @@ class Ioc {
 	}
 
 	public setConstructorsSingle<T>( singletons: { [ name: string ]: Function; }, params?: { [ name: string ]: any; } ): Ioc {
-		for( var name in singletons ) if( Object.hasOwnProperty.call( singletons, name ) ) {
+		for( var name in singletons ) if( Object.prototype.hasOwnProperty.call( singletons, name ) ) {
 			this.setConstructorSingle<T>( name, singletons[ name ], params );
 		}
 		return this;
@@ -115,7 +115,7 @@ class Ioc {
 	}
 
 	public setInstances( instances: { [ name: string ]: any; } ): Ioc {
-		for( var name in instances ) if( Object.hasOwnProperty.call( instances, name ) ) {
+		for( var name in instances ) if( Object.prototype.hasOwnProperty.call( instances, name ) ) {
 			this.setInstance( name, instances[ name ] );
 		}
 		return this;
