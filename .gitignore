@@ -1,12 +1,7 @@
 .*
 !.gitignore
+!.jshintrc
 !.travis.yml
-*.js
-out/
-!out/data/
-!/Gruntfile.js
-*.map
 node_modules/
-*.log
-*.tmp
-*.tmp.*
+out/
+typings/
