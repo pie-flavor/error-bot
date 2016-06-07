@@ -22,12 +22,10 @@ gulp.task( 'build:typings', [ 'clean' ], () =>
 );
 
 gulp.task( 'build:ts', [ 'clean', 'build:typings' ], () => {
-	const tsproj = typescript.createProject( 'tsconfig.json' );
+	const tsproj = typescript.createProject( 'tsconfig.json', { typescript: require( 'typescript' ) } );
 	return tsproj.src()
 		.pipe( sourcemaps.init() )
-		.pipe( typescript( {
-			typescript: require( 'typescript' )
-		} ) )
+		.pipe( typescript( tsproj ) )
 		.pipe( sourcemaps.write() )
 		.pipe( gulp.dest( tsproj.options.outDir ) );
 } );
