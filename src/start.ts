@@ -1,3 +1,11 @@
 import ErrorBot from './error-bot';
 
-( new ErrorBot ).start();
+( async function() {
+	try {
+		await ( new ErrorBot ).start();
+		process.exit( 0 );
+	} catch( ex ) {
+		console.error( ex );
+		process.exit( 1 );
+	}
+}() );

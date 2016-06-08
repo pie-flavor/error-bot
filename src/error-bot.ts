@@ -1,5 +1,5 @@
 export default class ErrorBot {
-	public start() {
+	public async start() {
 		throw new Error( 'Not implemented' );
 	}
 }
