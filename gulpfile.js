@@ -58,6 +58,7 @@ gulp.task( 'lint:jsonlint', () =>
 	gulp.src( [
 		'*.json',
 		'.jshintrc',
+		'data/**/*.json',
 		'test/**/*.json'
 	] )
 	.pipe( jsonlint() )
