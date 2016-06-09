@@ -4,17 +4,15 @@ import NodeBBApi from './nodebb-api';
 
 import { wait } from './time';
 
-const wildcard = require('socketio-wildcard')( io.Manager );
-
 export default class ErrorBot {
 	public async start() {
 		return new Promise( async ( resolve, reject ) => {
 			const { baseUrl } = require( '../data/config.json' );
 			console.log( `Connecting to ${baseUrl}...` );
 			const socket = io( baseUrl );
-			wildcard( socket );
+			require('socketio-wildcard')( io.Manager )( socket );
 
-			function emit( message: string, ...args ) {
+			function emit( message: string, ...args: any[] ) {
 				return new Promise( ( resolve, reject ) => {
 					socket.emit( message, ...args, ( error, data ) => {
 						if( error ) {
@@ -30,8 +28,8 @@ export default class ErrorBot {
 				reject( new Error( 'Disconnected from server' ) );
 			} );
 
-			socket.on( '*', ( ...args ) => {
-				console.log( ...args );
+			socket.on( '*', ( message, ...args ) => {
+				console.log( message, ...args );
 			} );
 
 			socket.on( 'event:new_notification', data => {

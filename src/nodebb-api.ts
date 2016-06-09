@@ -1,6 +1,6 @@
 import * as rp from 'request-promise';
 
-export interface NodeBBConfig {
+export interface INodeBBConfig {
 	environment: string;
 	relative_path: string;
 	version: string;
@@ -45,7 +45,7 @@ export interface NodeBBConfig {
 	markdown: {
 		highlight: number;
 		theme: string;
-	}
+	};
 }
 
 export default class NodeBBApi {
@@ -59,13 +59,13 @@ export default class NodeBBApi {
 			uri = `${baseUrl}/api/config`,
 			method = 'GET',
 			json = true,
-			config: NodeBBConfig = await rp( { uri, method, json, jar } );
+			config: INodeBBConfig = await rp( { uri, method, json, jar } );
 		this._csrf = config.csrf_token;
 		return config;
 	}
 
 	private async ensureCsrf() {
-		if( this._csrf ) return;
+		if( this._csrf ) { return; }
 		await this.getConfig();
 	}
 
