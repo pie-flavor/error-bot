@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import ErrorBot from './error-bot';
 
 ( async function() {
