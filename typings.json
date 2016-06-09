@@ -1,6 +1,8 @@
 {
   "globalDependencies": {
+    "form-data": "registry:dt/form-data#0.0.0+20160316155526",
     "node": "registry:dt/node#6.0.0+20160602155235",
+    "request": "registry:dt/request#0.0.0+20160524135346",
     "request-promise": "registry:dt/request-promise#0.4.2+20160316155526",
     "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654"
   }
