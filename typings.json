@@ -1,5 +1,7 @@
 {
   "globalDependencies": {
-    "node": "registry:dt/node#6.0.0+20160602155235"
+    "node": "registry:dt/node#6.0.0+20160602155235",
+    "request-promise": "registry:dt/request-promise#0.4.2+20160316155526",
+    "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654"
   }
 }

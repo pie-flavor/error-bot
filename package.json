@@ -13,6 +13,9 @@
     "q": "^1.1.2",
     "q-io": "^1.11.6",
     "q-xhr": "^0.1.2",
+    "request-promise": "^3.0.0",
+    "socket.io-client": "^1.4.6",
+    "socketio-wildcard": "^0.3.0",
     "source-map-support": "^0.4.0",
     "url2": "^1.0.3"
   },
