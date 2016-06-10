@@ -67,6 +67,7 @@ export default class NodeBBApi {
 	private async ensureCsrf() {
 		if( this._csrf ) { return; }
 		await this.getConfig();
+		return this._csrf;
 	}
 
 	public async logOut() {
