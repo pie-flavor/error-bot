@@ -9,6 +9,7 @@ const gulp = require( 'gulp' ),
 	jsonlint = require( 'gulp-jsonlint' ),
 	istanbul = require( 'gulp-istanbul' ),
 	mocha = require( 'gulp-mocha' ),
+	remapIstanbul = require( 'remap-istanbul/lib/gulpRemapIstanbul' ),
 	coveralls = require( 'gulp-coveralls' );
 
 gulp.task( 'clean:out', () =>
@@ -69,13 +70,15 @@ gulp.task( 'lint:jsonlint', () =>
 
 gulp.task( 'lint', [ 'lint:tslint', 'lint:jshint', 'lint:jsonlint' ] );
 
-gulp.task( 'test:istanbul', () =>
+gulp.task( 'pre-test:istanbul', () =>
 	gulp.src( 'out/**/*.js' )
 	.pipe( istanbul() )
 	.pipe( istanbul.hookRequire() )
 );
 
-gulp.task( 'test:mocha', [ 'test:istanbul' ], () =>
+gulp.task( 'pre-test', [ 'pre-test:istanbul' ] );
+
+gulp.task( 'test:mocha', [ 'pre-test' ], () =>
 	gulp.src( 'test/**/*.spec.js' )
 	.pipe( mocha( { reporter: 'spec' } ) )
 	.pipe( istanbul.writeReports() )
@@ -84,7 +87,18 @@ gulp.task( 'test:mocha', [ 'test:istanbul' ], () =>
 	} ) )
 );
 
-gulp.task( 'test:coveralls', [ 'test:mocha' ], () => {
+gulp.task( 'test:istanbul', [ 'pre-test', 'test:mocha' ], () =>
+	gulp.src( 'coverage/coverage-final.json' )
+	.pipe( remapIstanbul( {
+		fail: true,
+		reports: {
+			lcovonly: 'coverage/lcov.info',
+			json: 'coverage/coverage-final.json'
+		}
+	} ) )
+);
+
+gulp.task( 'test:coveralls', [ 'pre-test', 'test:istanbul' ], () => {
 	if( !process.env.CI ) {
 		return;
 	}
@@ -93,6 +107,6 @@ gulp.task( 'test:coveralls', [ 'test:mocha' ], () => {
 		.pipe( coveralls() );
 } );
 
-gulp.task( 'test', [ 'test:mocha', 'test:coveralls' ] );
+gulp.task( 'test', [ 'pre-test', 'test:mocha', 'test:istanbul', 'test:coveralls' ] );
 
 gulp.task( 'default', [ 'build' ] );
