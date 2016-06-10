@@ -7,7 +7,9 @@ const gulp = require( 'gulp' ),
 	tslint = require( 'gulp-tslint' ),
 	jshint = require( 'gulp-jshint' ),
 	jsonlint = require( 'gulp-jsonlint' ),
-	mocha = require( 'gulp-mocha' );
+	istanbul = require( 'gulp-istanbul' ),
+	mocha = require( 'gulp-mocha' ),
+	coveralls = require( 'gulp-coveralls' );
 
 gulp.task( 'clean:out', () =>
 	gulp.src( [ 'out/**/*' ] )
@@ -67,11 +69,30 @@ gulp.task( 'lint:jsonlint', () =>
 
 gulp.task( 'lint', [ 'lint:tslint', 'lint:jshint', 'lint:jsonlint' ] );
 
-gulp.task( 'test:mocha', () =>
-	gulp.src( 'test/**/*.spec.js' )
-	.pipe( mocha( { reporter: 'spec' } ) )
+gulp.task( 'test:istanbul', () =>
+	gulp.src( 'out/**/*.js' )
+	.pipe( istanbul() )
+	.pipe( istanbul.hookRequire() )
 );
 
-gulp.task( 'test', [ 'test:mocha' ] );
+gulp.task( 'test:mocha', [ 'test:istanbul' ], () =>
+	gulp.src( 'test/**/*.spec.js' )
+	.pipe( mocha( { reporter: 'spec' } ) )
+	.pipe( istanbul.writeReports() )
+	.pipe( istanbul.enforceThresholds( {
+		thresholds: { global: 10 }
+	} ) )
+);
+
+gulp.task( 'test:coveralls', [ 'test:mocha' ], () => {
+	if( !process.env.CI ) {
+		return;
+	}
+
+	return gulp.src( 'coverage/lcov.info' )
+		.pipe( coveralls() );
+} );
+
+gulp.task( 'test', [ 'test:mocha', 'test:coveralls' ] );
 
 gulp.task( 'default', [ 'build' ] );

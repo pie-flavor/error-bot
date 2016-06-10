@@ -2,6 +2,7 @@
 !.gitignore
 !.jshintrc
 !.travis.yml
+coverage/
 node_modules/
 out/
 typings/
