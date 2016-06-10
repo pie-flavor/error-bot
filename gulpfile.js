@@ -29,7 +29,7 @@ gulp.task( 'build:ts', [ 'clean', 'build:typings' ], () => {
 	return tsproj.src()
 		.pipe( sourcemaps.init() )
 		.pipe( typescript( tsproj ) )
-		.pipe( sourcemaps.write( '.' ) )
+		.pipe( sourcemaps.write( '.', { sourceRoot: tsproj.options.rootDir } ) )
 		.pipe( gulp.dest( tsproj.options.outDir ) );
 } );
 
