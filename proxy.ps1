@@ -1,25 +1,22 @@
-param( [string]$url )
+Param ( [string]$url )
 
-function Set-Env {
-	param( [string]$name, [string]$value )
-	$Private:path = "env:\$name"
-	Set-Item $Private:path $value
-}
-
-function Unset-Env {
-	param( [string]$name )
-	$Private:path = "env:\$name"
-	If( Test-Path $Private:path ) {
-		Remove-Item $Private:path
+Function Set-Proxy {
+	Param ( [string]$url )
+	if( $url ) {
+		Set-Item Env:\http_proxy $url
+		Set-Item Env:\https_proxy $url
+		Set-Item Env:\NODE_TLS_REJECT_UNAUTHORIZED "0"
+	} else {
+		if( Test-Path Env:\http_proxy ) {
+			Remove-Item Env:\http_proxy
+		}
+		if( Test-Path Env:\https_proxy ) {
+			Remove-Item Env:\https_proxy
+		}
+		if( Test-Path Env:\NODE_TLS_REJECT_UNAUTHORIZED ) {
+			Remove-Item Env:\NODE_TLS_REJECT_UNAUTHORIZED
+		}
 	}
 }
 
-$env:http_proxy = $url
-$env:https_proxy = $url
-if( !$url ) {
-	$env:NODE_TLS_REJECT_UNAUTHORIZED = ""
-	Write-Output "Proxy unset"
-} else {
-	$env:NODE_TLS_REJECT_UNAUTHORIZED = "0"
-	Write-Output "Proxy set to $url"
-}
+Set-Proxy $url
