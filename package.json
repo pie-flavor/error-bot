@@ -12,7 +12,7 @@
     "performance-now": "^0.2.0",
     "q": "^1.1.2",
     "q-io": "^1.11.6",
-    "q-xhr": "^0.1.2",
+    "q-xhr": "^1.1.0",
     "request-promise": "^3.0.0",
     "socket.io-client": "^1.4.6",
     "socketio-wildcard": "^0.3.0",
