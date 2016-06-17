@@ -1,92 +1,43 @@
-import * as rp from 'request-promise';
+import NodeBBSession from './nodebb-session';
+import NodeBBRest from './nodebb-rest';
+import NodeBBSocket from './nodebb-socket';
 
-export interface INodeBBConfig {
-	environment: string;
-	relative_path: string;
-	version: string;
-	siteTitle: string;
-	browserTitle: string;
-	titleLayout: string;
-	showSiteTitle: boolean;
-	minimumTitleLength: number;
-	maximumTitleLength: number;
-	minimumPostLength: number;
-	maximumPostLength: number;
-	minimumTagsPerTopic: number;
-	maximumTagsPerTopic: number;
-	hasImageUploadPlugin: boolean;
-	useOutgoingLinksPage: boolean;
-	allowGuestSearching: boolean;
-	allowGuestUserSearching: boolean;
-	allowGuestHandles: boolean;
-	allowFileUploads: boolean;
-	allowTopicsThumbnail: boolean;
-	usePagination: boolean;
-	disableChat: boolean;
-	socketioTransports: string[];
-	websocketAddress: string;
-	maxReconnectionAttempts: number;
-	reconnectionDelay: number;
-	topicsPerPage: number;
-	postsPerPage: number;
-	maximumFileSize: number;
-	'theme:id': string;
-	'theme:src': string;
-	defaultLang: string;
-	loggedIn: boolean;
-	'cache-buster': string;
-	requireEmailConfirmation: boolean;
-	topicPostSort: string;
-	categoryTopicSort: string;
-	csrf_token: string;
-	searchEnabled: boolean;
-	bootswatchSkin: boolean;
-	'composer-default': {};
-	markdown: {
-		highlight: number;
-		theme: string;
-	};
-}
+type SessionOpts = { session: NodeBBSession };
+type RestOpts = SessionOpts & { rest: NodeBBRest };
+type SocketOpts = SessionOpts & { socket: NodeBBSocket };
 
 export default class NodeBBApi {
-	public constructor( public baseUrl: string ) {}
-
-	private _csrf: string;
-	private jar = rp.jar();
-
-	public async getConfig() {
-		const { baseUrl, jar } = this,
-			uri = `${baseUrl}/api/config`,
-			method = 'GET',
-			json = true,
-			config: INodeBBConfig = await rp( { uri, method, json, jar } );
-		this._csrf = config.csrf_token;
-		return config;
+	public async getConfig( { session, rest }: RestOpts ) {
+		return session.config =
+			await rest.get( {
+				session,
+				path: '/api/config',
+				json: true
+			} );
 	}
 
-	private async ensureCsrf() {
-		if( this._csrf ) { return; }
-		await this.getConfig();
-		return this._csrf;
+	private async ensureConfig( { session, rest }: RestOpts ) {
+		if( !session.config ) {
+			await this.getConfig( { session, rest } );
+		}
 	}
 
-	public async logOut() {
-		await this.ensureCsrf();
-		const { baseUrl, _csrf, jar } = this,
-			uri = `${baseUrl}/logout`,
-			method = 'POST',
-			body = { _csrf },
-			json = true;
-		return rp( { uri, method, body, json, jar } );
+	public async logOut( { session, rest }: RestOpts ) {
+		await this.ensureConfig( { session, rest } );
+		await rest.post( {
+			session,
+			path: '/logout'
+		} );
+		session.reset();
 	}
 
-	public async logIn( username: string, password: string ) {
-		await this.ensureCsrf();
-		const { baseUrl, _csrf, jar } = this,
-			uri = `${baseUrl}/login`,
-			method = 'POST',
-			body = { username, password, _csrf },
-			json = true;
-		return rp( { uri, method, body, json, jar } );
+	public async logIn( { session, rest, username, password }: RestOpts & { username: string, password: string } ) {
+		await this.ensureConfig( { session, rest } );
+		await rest.post( {
+			session,
+			path: '/login',
+			form: { username, password }
+		} );
+		await this.getConfig( { session, rest } );
 	}
 }

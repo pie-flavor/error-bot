@@ -1,66 +1,38 @@
-import * as io from 'socket.io-client';
-
+import NodeBBSession from './nodebb-session';
+import NodeBBRest from './nodebb-rest';
+import NodeBBSocket from './nodebb-socket';
 import NodeBBApi from './nodebb-api';
+
+import { topicId } from './config';
 
 import { wait } from './time';
 
 export default class ErrorBot {
 	public async start() {
 		return new Promise( async ( resolve, reject ) => {
-			const { baseUrl } = require( '../data/config.json' );
-			console.log( `Connecting to ${baseUrl}...` );
-			const socket = io( baseUrl );
-			require('socketio-wildcard')( io.Manager )( socket );
-
-			function emit( message: string, ...args: any[] ) {
-				return new Promise( ( resolve, reject ) => {
-					socket.emit( message, ...args, ( error, data ) => {
-						if( error ) {
-							reject( error );
-						} else {
-							resolve( data );
-						}
-					} );
-				} );
-			}
-
-			socket.on( 'disconnect', () => {
-				reject( new Error( 'Disconnected from server' ) );
-			} );
-
-			socket.on( '*', ( message, ...args ) => {
-				console.log( message, ...args );
-			} );
-
-			socket.on( 'event:new_notification', data => {
-				console.log( 'event:new_notification', data );
-			} );
-
-			await ( new Promise( resolve => {
-				socket.on( 'connect', () => { resolve(); } );
-			} ) );
-
 			try {
-				console.log( 'Connected' );
-
-				const api = new NodeBBApi( baseUrl ),
+				const session = new NodeBBSession,
+					rest = new NodeBBRest,
+					api = new NodeBBApi,
 					{ username, password } = require( '../data/auth.json' );
 
 				console.log( 'Logging in...' );
-				await api.logIn( username, password );
+				await api.logIn( { session, rest, username, password } );
 				console.log( 'Logged in' );
 
-				console.log( 'Fetching config...' );
-				const config = await api.getConfig();
-				console.dir( config );
+				await wait( 1000 );
 
-				const notifications = await emit( 'notifications.get', null );
-				console.dir( notifications );
+				const socket = await NodeBBSocket.connect( { session } );
+				console.log( 'connect' );
+				await wait( 1000 );
 
-				await wait( 60 * 1000 * 5 );
+				console.log( 'posts.reply', { tid: topicId, content: 'I live... again!', toPid: null, lock: false } );
+				await socket.emit( 'posts.reply', { tid: topicId, content: 'I live... again!', toPid: null, lock: false } );
+
+				await wait( 1000 * 5 );
 
 				console.log( 'Logging out...' );
-				await api.logOut();
+				await api.logOut( { session, rest } );
 				console.log( 'Logged out' );
 
 				resolve();

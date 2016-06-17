@@ -1,0 +1,47 @@
+declare interface INodeBBConfig {
+	environment: string;
+	relative_path: string;
+	version: string;
+	siteTitle: string;
+	browserTitle: string;
+	titleLayout: string;
+	showSiteTitle: boolean;
+	minimumTitleLength: number;
+	maximumTitleLength: number;
+	minimumPostLength: number;
+	maximumPostLength: number;
+	minimumTagsPerTopic: number;
+	maximumTagsPerTopic: number;
+	hasImageUploadPlugin: boolean;
+	useOutgoingLinksPage: boolean;
+	allowGuestSearching: boolean;
+	allowGuestUserSearching: boolean;
+	allowGuestHandles: boolean;
+	allowFileUploads: boolean;
+	allowTopicsThumbnail: boolean;
+	usePagination: boolean;
+	disableChat: boolean;
+	socketioTransports: string[];
+	websocketAddress: string;
+	maxReconnectionAttempts: number;
+	reconnectionDelay: number;
+	topicsPerPage: number;
+	postsPerPage: number;
+	maximumFileSize: number;
+	'theme:id': string;
+	'theme:src': string;
+	defaultLang: string;
+	loggedIn: boolean;
+	'cache-buster': string;
+	requireEmailConfirmation: boolean;
+	topicPostSort: string;
+	categoryTopicSort: string;
+	csrf_token: string;
+	searchEnabled: boolean;
+	bootswatchSkin: boolean;
+	'composer-default': {};
+	markdown: {
+		highlight: number;
+		theme: string;
+	};
+}
