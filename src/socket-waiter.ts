@@ -1,5 +1,7 @@
-export default class Waiter {
-	public emit( socket: SocketIOClient.Socket, event: string, ...args: any[] ) {
+type Socket = SocketIOClient.Socket;
+
+export default class SocketWaiter {
+	public emit( socket: Socket, event: string, ...args: any[] ) {
 		return new Promise( ( resolve, reject ) => {
 			socket.emit( event, ...args, ( err, ...data ) => {
 				if( err ) {
@@ -11,7 +13,7 @@ export default class Waiter {
 		} );
 	}
 
-	public waitFor( socket: SocketIOClient.Socket, event: string ) {
+	public waitFor( socket: Socket, event: string ) {
 		return new Promise( ( resolve, reject ) => {
 			socket.once( event, ( err, data ) => {
 				if( err ) {

@@ -17,22 +17,16 @@ export default class ErrorBot {
 					{ username, password } = require( '../data/auth.json' );
 
 				console.log( 'Logging in...' );
-				await api.logIn( { session, rest, username, password } );
+				await api.auth.logIn( { session, rest, username, password } );
 				console.log( 'Logged in' );
 
-				await wait( 1000 );
-
 				const socket = await NodeBBSocket.connect( { session } );
-				console.log( 'connect' );
+				await api.posts.reply( { socket, tid: topicId, content: '@error I feel much less sluggish now!' } );
+
 				await wait( 1000 );
-
-				console.log( 'posts.reply', { tid: topicId, content: 'I live... again!', toPid: null, lock: false } );
-				await socket.emit( 'posts.reply', { tid: topicId, content: 'I live... again!', toPid: null, lock: false } );
-
-				await wait( 1000 * 5 );
 
 				console.log( 'Logging out...' );
-				await api.logOut( { session, rest } );
+				await api.auth.logOut( { session, rest } );
 				console.log( 'Logged out' );
 
 				resolve();
