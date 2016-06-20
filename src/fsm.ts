@@ -53,8 +53,9 @@ export class Fsm extends EventEmitter {
 		if( typeof nextState === 'string' ) {
 			nextState = this.getState( nextState );
 		}
-		this.onStateChange( { previousState, nextState } );
+		this.onBeforeStateChange( { previousState, nextState } );
 		stateStack.push( nextState );
+		this.onAfterStateChange( { previousState, nextState } );
 	}
 
 	public popState() {
@@ -63,8 +64,10 @@ export class Fsm extends EventEmitter {
 		if( !previousState ) {
 			throw new Error( 'popState called with empty stateStack' );
 		}
-		this.onStateChange( { previousState, nextState } );
-		return stateStack.pop();
+		this.onBeforeStateChange( { previousState, nextState } );
+		stateStack.pop();
+		this.onAfterStateChange( { previousState, nextState } );
+		return previousState;
 	}
 
 	public replaceState( nextState: FsmState|string ) {
@@ -75,21 +78,26 @@ export class Fsm extends EventEmitter {
 		if( typeof nextState === 'string' ) {
 			nextState = this.getState( nextState );
 		}
-		this.onStateChange( { previousState, nextState } );
+		this.onBeforeStateChange( { previousState, nextState } );
 		stateStack.pop();
 		stateStack.push( nextState );
+		this.onAfterStateChange( { previousState, nextState } );
 		return previousState;
 	}
 
-	private onStateChange( { previousState, nextState }: IFsmStateChangeArgs ) {
-		this.emit( 'stateChange', { previousState, nextState } );
+	private onBeforeStateChange( { previousState, nextState }: IFsmStateChangeArgs ) {
 		if( previousState ) {
 			previousState.emit( 'stateExit', { nextState, fsm: this } );
 		}
+	}
+
+	private onAfterStateChange( { previousState, nextState }: IFsmStateChangeArgs ) {
 		if( nextState ) {
 			nextState.emit( 'stateEnter', { previousState, fsm: this } );
 		}
+		this.emit( 'stateChange', { previousState, nextState } );
 	}
+
 
 	public get currentState() {
 		const { stateStack } = this,
@@ -99,10 +107,10 @@ export class Fsm extends EventEmitter {
 
 	public sendMessage( message: string ) {
 		const { currentState } = this;
-		this.emit( 'messageSent', { message, currentState } );
 		if( currentState ) {
 			currentState.emit( 'messageReceived', { message, fsm: this } );
 		}
+		this.emit( 'messageSent', { message, currentState } );
 	}
 
 	private stateMap = new Map<string, FsmState>();
