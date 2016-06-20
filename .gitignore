@@ -1,6 +1,6 @@
 .*
 !.gitignore
-!.jshintrc
+!.eslintrc.json
 !.travis.yml
 coverage/
 node_modules/

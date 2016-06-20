@@ -1,0 +1,15 @@
+{
+	"extends": "../.eslintrc.json",
+	"parserOptions": {
+	},
+	"plugins": [
+	],
+	"env": {
+	},
+	"rules": {
+		"id-blacklist": "off",
+		"no-unused-expressions": "off",
+		"no-unused-vars": "off",
+		"prefer-const": "off"
+	}
+}

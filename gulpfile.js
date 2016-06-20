@@ -1,16 +1,20 @@
 /* jshint node: true, esversion: 6 */
 const gulp = require( 'gulp' ),
+	gulpIf = require( 'gulp-if' ),
 	clean = require( 'gulp-clean' ),
 	typings = require( 'gulp-typings' ),
 	typescript = require( 'gulp-typescript' ),
 	sourcemaps = require( 'gulp-sourcemaps' ),
 	tslint = require( 'gulp-tslint' ),
-	jshint = require( 'gulp-jshint' ),
-	jsonlint = require( 'gulp-jsonlint' ),
+	eslint = require( 'gulp-eslint' ),
 	istanbul = require( 'gulp-istanbul' ),
 	mocha = require( 'gulp-mocha' ),
 	remapIstanbul = require( 'remap-istanbul/lib/gulpRemapIstanbul' ),
-	coveralls = require( 'gulp-coveralls' );
+	coveralls = require( 'gulp-coveralls' ),
+	minimist = require( 'minimist' ),
+	options = minimist( process.argv.slice( 2 ), {
+		boolean: [ 'fix' ]
+	} );
 
 gulp.task( 'clean:out', () =>
 	gulp.src( [ 'out/**/*' ] )
@@ -45,30 +49,23 @@ gulp.task( 'lint:tslint', () =>
 	} ) )
 );
 
-gulp.task( 'lint:jshint', () =>
+gulp.task( 'lint:eslint', () =>
 	gulp.src( [
-		'gulpfile.js',
-		'test/**/*.js',
-		'test/**/*.html'
-	] )
-	.pipe( jshint.extract( 'auto' ) )
-	.pipe( jshint() )
-	.pipe( jshint.reporter( 'default', { verbose: true } ) )
-	.pipe( jshint.reporter( 'fail' ) )
-);
-
-gulp.task( 'lint:jsonlint', () =>
-	gulp.src( [
+		'*.js',
 		'*.json',
-		'.jshintrc',
 		'data/**/*.json',
-		'test/**/*.json'
-	] )
-	.pipe( jsonlint() )
-	.pipe( jsonlint.reporter() )
+		'src/**/*.js',
+		'test/**/*.js'
+	], { base: '.' } )
+	.pipe( eslint( {
+		fix: options.fix
+	} ) )
+	.pipe( eslint.format() )
+	.pipe( gulpIf( file => file.eslint && file.eslint.fixed, gulp.dest( '.' ) ) )
+	.pipe( eslint.failAfterError() )
 );
 
-gulp.task( 'lint', [ 'lint:tslint', 'lint:jshint', 'lint:jsonlint' ] );
+gulp.task( 'lint', [ 'lint:tslint', 'lint:eslint' ] );
 
 gulp.task( 'pre-test:istanbul', () =>
 	gulp.src( 'out/**/*.js' )

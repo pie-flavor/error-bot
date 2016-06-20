@@ -1,4 +1,4 @@
-/* jshint expr: true */
+/* eslint no-console: "off" */
 
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),

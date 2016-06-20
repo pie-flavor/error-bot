@@ -1,5 +1,3 @@
-/* jshint expr: true */
-
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),
 	{ expect } = chai;
