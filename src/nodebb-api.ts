@@ -33,7 +33,6 @@ export default class NodeBBApi {
 				session,
 				path: '/logout'
 			} );
-			session.reset();
 		}
 
 		public async logIn( { session, rest, username, password }: RestOpts & { username: string, password: string } ) {
