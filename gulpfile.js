@@ -16,14 +16,24 @@ const gulp = require( 'gulp' ),
 		boolean: [ 'fix' ]
 	} );
 
-gulp.task( 'clean:out', () =>
-	gulp.src( [ 'out/**/*' ] )
+gulp.task( 'clean:coverage', () =>
+	gulp.src( [ 'coverage' ] )
 	.pipe( clean() )
 );
 
-gulp.task( 'clean', [ 'clean:out' ] );
+gulp.task( 'clean:out', () =>
+	gulp.src( [ 'out' ] )
+	.pipe( clean() )
+);
 
-gulp.task( 'build:typings', [ 'clean' ], () =>
+gulp.task( 'clean:typings', () =>
+	gulp.src( [ 'typings' ] )
+	.pipe( clean() )
+);
+
+gulp.task( 'clean', [ 'clean:coverage', 'clean:out', 'clean:typings' ] );
+
+gulp.task( 'build:typings', [ 'clean:typings' ], () =>
 	gulp.src( 'typings.json' )
 	.pipe( typings() )
 );
@@ -67,13 +77,13 @@ gulp.task( 'lint:eslint', () =>
 
 gulp.task( 'lint', [ 'lint:tslint', 'lint:eslint' ] );
 
-gulp.task( 'pre-test:istanbul', () =>
+gulp.task( 'pre-test:istanbul', [ 'clean:coverage' ], () =>
 	gulp.src( 'out/**/*.js' )
 	.pipe( istanbul() )
 	.pipe( istanbul.hookRequire() )
 );
 
-gulp.task( 'pre-test', [ 'pre-test:istanbul' ] );
+gulp.task( 'pre-test', [ 'clean:coverage', 'pre-test:istanbul' ] );
 
 gulp.task( 'test:mocha', [ 'pre-test' ], () =>
 	gulp.src( 'test/**/*.spec.js' )
@@ -84,7 +94,7 @@ gulp.task( 'test:mocha', [ 'pre-test' ], () =>
 	} ) )
 );
 
-gulp.task( 'test:istanbul', [ 'pre-test', 'test:mocha' ], () =>
+gulp.task( 'test:istanbul', [ 'clean:coverage', 'pre-test', 'test:mocha' ], () =>
 	gulp.src( 'coverage/coverage-final.json' )
 	.pipe( remapIstanbul( {
 		fail: true,
@@ -95,14 +105,10 @@ gulp.task( 'test:istanbul', [ 'pre-test', 'test:mocha' ], () =>
 	} ) )
 );
 
-gulp.task( 'test:coveralls', [ 'pre-test', 'test:istanbul' ], () => {
-	if( !process.env.CI ) {
-		return;
-	}
-
-	return gulp.src( 'coverage/lcov.info' )
-		.pipe( coveralls() );
-} );
+gulp.task( 'test:coveralls', [ 'pre-test', 'test:istanbul' ], () =>
+	gulp.src( 'coverage/lcov.info' )
+	.pipe( gulpIf( process.env.CI, coveralls() ) )
+);
 
 gulp.task( 'test', [ 'pre-test', 'test:mocha', 'test:istanbul', 'test:coveralls' ] );
 
