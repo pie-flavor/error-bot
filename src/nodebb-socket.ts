@@ -38,5 +38,5 @@ export default class NodeBBSocket {
 		] );
 	}
 
-	private socket: SocketIOClient.Socket;
+	public socket: SocketIOClient.Socket;
 }

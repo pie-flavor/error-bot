@@ -3,7 +3,7 @@ import NodeBBRest from './nodebb-rest';
 import NodeBBSocket from './nodebb-socket';
 import NodeBBApi from './nodebb-api';
 
-import { topicId } from './config';
+import SocketQueue from './socket-queue';
 
 import { wait } from './time';
 
@@ -20,10 +20,21 @@ export default class ErrorBot {
 				await api.auth.logIn( { session, rest, username, password } );
 				console.log( 'Logged in' );
 
-				const socket = await NodeBBSocket.connect( { session } );
-				await api.posts.reply( { socket, tid: topicId, content: '@error I feel much less sluggish now!' } );
+				const socket = await NodeBBSocket.connect( { session } ),
+					queue = new SocketQueue;
 
-				await wait( 1000 );
+				queue.subscribe( socket.socket,
+					'event:new_notification'
+				);
+				for( ; ; ) {
+					await wait( 20 );
+					const [ event, args ] = queue.dequeue() || [];
+					if( !event ) {
+						continue;
+					}
+					const [ { tid, pid, bodyLong } ] = args;
+					await api.posts.reply( { socket, tid, toPid: pid, content: `${bodyLong}` } );
+				}
 
 				console.log( 'Logging out...' );
 				await api.auth.logOut( { session, rest } );
