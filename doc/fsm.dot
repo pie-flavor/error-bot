@@ -1,0 +1,19 @@
+digraph {
+  start -> a;
+  global -> b [label=pause];
+  b -> global [label=unpause];
+  a -> c [label=sleep];
+  c -> a [label=wake];
+  a [label=listening];
+  b [label=paused];
+  c [label=sleeping];
+  global [style=invis];
+  subgraph {
+    rank=same;
+	start; global; b;
+  }
+  subgraph {
+    rank=same;
+	a; c;
+  }
+}
