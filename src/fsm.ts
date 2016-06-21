@@ -1,30 +1,5 @@
 import { EventEmitter } from 'events';
 
-export interface IFsmMessageSentEventArgs {
-	message: string;
-	currentState: FsmState;
-}
-
-export interface IFsmMessageReceivedEventArgs {
-	message: string;
-	fsm: Fsm;
-}
-
-export interface IFsmStateChangeArgs {
-	previousState: FsmState;
-	nextState: FsmState;
-}
-
-export interface IFsmStateEnterArgs {
-	previousState: FsmState;
-	fsm: Fsm;
-}
-
-export interface IFsmStateExitArgs {
-	nextState: FsmState;
-	fsm: Fsm;
-}
-
 export class Fsm extends EventEmitter {
 	public createState( name: string ) {
 		const { stateMap } = this;
@@ -107,14 +82,23 @@ export class Fsm extends EventEmitter {
 
 	public sendMessage( message: string ) {
 		const { currentState } = this;
+		let transition;
 		if( currentState ) {
 			currentState.emit( 'messageReceived', { message, fsm: this } );
+			transition = currentState.transitions.get( message );
 		}
 		this.emit( 'messageSent', { message, currentState } );
+		if( !transition ) {
+			transition = this.transitions.get( message );
+		}
+		if( transition ) {
+			transition.transition( this );
+		}
 	}
 
 	private stateMap = new Map<string, FsmState>();
 	private stateStack = [] as FsmState[];
+	public transitions = new FsmTransitionMap;
 }
 
 export class FsmState extends EventEmitter {
@@ -125,5 +109,61 @@ export class FsmState extends EventEmitter {
 	public toString() {
 		const { name } = this;
 		return name;
+	}
+
+	public transitions = new FsmTransitionMap;
+}
+
+export class FsmTransitionMap extends Map<string, FsmTransition> {}
+
+export abstract class FsmTransition {
+	public abstract transition( fsm: Fsm );
+}
+
+export class FsmReplaceTransition extends FsmTransition {
+	public constructor( public state: FsmState|string ) {
+		super();
+	}
+
+	public transition( fsm: Fsm ) {
+		fsm.replaceState( this.state );
+	}
+
+	public toString() {
+		return `replaceState:${this.state.toString()}`;
+	}
+}
+
+export class FsmPushTransition extends FsmTransition {
+	public constructor( public state: FsmState|string ) {
+		super();
+	}
+
+	public transition( fsm: Fsm ) {
+		fsm.pushState( this.state );
+	}
+
+	public toString() {
+		return `pushState:${this.state.toString()}`;
+	}
+}
+
+export class FsmPopTransition extends FsmTransition {
+	public transition( fsm: Fsm ) {
+		fsm.popState();
+	}
+
+	public toString() {
+		return 'popState';
+	}
+}
+
+export class FsmNullTransition extends FsmTransition {
+	public transition( fsm: Fsm ) {
+		// do nothing
+	}
+
+	public toString() {
+		return 'null';
 	}
 }
