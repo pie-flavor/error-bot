@@ -1,6 +1,6 @@
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),
-	{ expect } = chai,
+	{ assert, expect } = chai,
 	{ mock, stub, spy } = require( 'sinon' ),
 	proxyquire = require( 'proxyquire' ),
 	request = require( 'request' ),

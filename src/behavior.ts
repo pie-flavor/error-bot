@@ -1,19 +1,23 @@
-type PromiseGetter<T> = ( context: T ) => Promise<void>;
+type PromiseGetter<T,R> = ( context: T ) => Promise<R>;
 
-export function retry<T>( count: number, promise: PromiseGetter<T> ) {
-	return select<T>( ...Array.from( { length: count }, () => context => promise( context ) ) );
+export function retry<T,R>( count: number, promise: PromiseGetter<T,R> ) {
+	return select<T,R>( ...Array.from( { length: count }, () => context => promise( context ) ) );
 }
 
-export function repeat<T>( promise: PromiseGetter<T>, count = Infinity ) {
-	return async context => {
+export function repeat<T,R>( promise: PromiseGetter<T,R>, count = Infinity ) {
+	return async ( context: T ) => {
 		for( ; count > 0; count-- ) {
 			await promise( context );
 		}
 	};
 }
 
-export function select<T>( ...promises: PromiseGetter<T>[] ) {
-	return context => {
+export function parallel<T,R>( ...promises: PromiseGetter<T,R>[] ) {
+	return ( context: T ) => Promise.all( promises.map( p => p() ) );
+}
+
+export function select<T,R>( ...promises: PromiseGetter<T,R>[] ) {
+	return ( context: T ) => {
 		let all = Promise.reject( null );
 		for( let promise of promises ) {
 			all = all.then( null, () => promise( context ) );
@@ -22,8 +26,8 @@ export function select<T>( ...promises: PromiseGetter<T>[] ) {
 	};
 }
 
-export function sequence<T>( ...promises: PromiseGetter<T>[] ) {
-	return context => {
+export function sequence<T,R>( ...promises: PromiseGetter<T,R>[] ) {
+	return ( context: T ) => {
 		let all = Promise.resolve();
 		for( let promise of promises ) {
 			all = all.then( () => promise( context ) );
@@ -32,10 +36,20 @@ export function sequence<T>( ...promises: PromiseGetter<T>[] ) {
 	};
 }
 
-export function invert<T>( promise: PromiseGetter<T> ) {
-	return context => promise( context ).then( () => Promise.reject( null ), () => { /* catch */ } );
+export function invert<T,R>( promise: PromiseGetter<T,R> ) {
+	return ( context: T ) => promise( context ).then( () => Promise.reject( null ), () => { /* catch */ } );
 }
 
-export function succeed<T>( promise: PromiseGetter<T> ) {
-	return context => promise( context ).then( null, () => { /* catch */ } );
+export function succeed<T,R>( promise: PromiseGetter<T,R> ) {
+	return ( context: T ) => promise( context ).then( null, () => { /* catch */ } );
+}
+
+export function dequeue<T,R>( queue: R[] ) {
+	return ( context: T ) => new Promise<R>( ( resolve, reject ) => {
+		if( queue.length < 1 ) {
+			reject();
+		} else {
+			resolve( queue.shift() );
+		}
+	} );
 }

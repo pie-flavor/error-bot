@@ -1,7 +1,7 @@
 import { userAgent, baseUrl, connectTimeout, emitTimeout } from './config';
 import NodeBBSession from './nodebb-session';
-import { wait } from './time';
-import SocketWaiter from './socket-waiter';
+import { wait } from './async-util';
+import { emit, waitFor } from './socket-waiter';
 
 import * as io from 'socket.io-client';
 
@@ -21,19 +21,18 @@ export default class NodeBBSocket {
 					'Cookie': session.jar.getCookieString( baseUrl )
 				}
 			} as any );
-		const waiter = new SocketWaiter;
 		return Promise.race<any>( [
-			waiter.waitFor( socket, 'error' ),
-			waiter.waitFor( socket, 'connect' ),
+			waitFor( socket, 'connect' ),
+			waitFor( socket, 'error' ),
 			wait( connectTimeout ).then( () => Promise.reject( new Error( 'connect timeout' ) ) )
 		] ).then( () => new NodeBBSocket( { socket } ) );
 	}
 
 	public emit( event: string, ...args: any[] ) {
-		const { socket } = this,
-			waiter = new SocketWaiter;
+		const { socket } = this;
 		return Promise.race<any>( [
-			waiter.emit( socket, event, ...args ),
+			emit( socket, event, ...args ),
+			waitFor( socket, 'error' ),
 			wait( emitTimeout ).then( () => Promise.reject( new Error( 'emit timeout' ) ) )
 		] );
 	}

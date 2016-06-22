@@ -1,6 +1,6 @@
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),
-	{ expect } = chai,
+	{ assert, expect } = chai,
 	proxyquire = require( 'proxyquire' );
 
 describe( 'config', () => {

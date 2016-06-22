@@ -5,6 +5,7 @@ const config = require( '../data/config.json' ) as {
 	topicId: number;
 	connectTimeout: number;
 	emitTimeout: number;
+	actionDelay: number;
 };
 
 export = config;

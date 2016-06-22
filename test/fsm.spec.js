@@ -1,6 +1,6 @@
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),
-	{ expect } = chai,
+	{ assert, expect } = chai,
 	{ spy } = require( 'sinon' ),
 	{ Fsm, FsmState } = require( '../out/fsm' );
 
