@@ -1,6 +1,7 @@
 /* jshint node: true, esversion: 6 */
 const gulp = require( 'gulp' ),
 	gulpIf = require( 'gulp-if' ),
+	gulpIgnore = require( 'gulp-ignore' ),
 	clean = require( 'gulp-clean' ),
 	typings = require( 'gulp-typings' ),
 	typescript = require( 'gulp-typescript' ),
@@ -13,7 +14,8 @@ const gulp = require( 'gulp' ),
 	coveralls = require( 'gulp-coveralls' ),
 	minimist = require( 'minimist' ),
 	options = minimist( process.argv.slice( 2 ), {
-		boolean: [ 'fix' ]
+		boolean: [ 'fix', 'coverage' ],
+		default: { coverage: true }
 	} );
 
 gulp.task( 'clean:coverage', () =>
@@ -79,6 +81,7 @@ gulp.task( 'lint', [ 'lint:tslint', 'lint:eslint' ] );
 
 gulp.task( 'pre-test:istanbul', [ 'clean:coverage' ], () =>
 	gulp.src( 'out/**/*.js' )
+	.pipe( gulpIgnore.exclude( !options.coverage ) )
 	.pipe( istanbul() )
 	.pipe( istanbul.hookRequire() )
 );
@@ -88,14 +91,15 @@ gulp.task( 'pre-test', [ 'clean:coverage', 'pre-test:istanbul' ] );
 gulp.task( 'test:mocha', [ 'pre-test' ], () =>
 	gulp.src( 'test/**/*.spec.js' )
 	.pipe( mocha( { reporter: 'spec' } ) )
-	.pipe( istanbul.writeReports() )
-	.pipe( istanbul.enforceThresholds( {
+	.pipe( gulpIf( options.coverage, istanbul.writeReports() ) )
+	.pipe( gulpIf( options.coverage, istanbul.enforceThresholds( {
 		thresholds: { global: 10 }
-	} ) )
+	} ) ) )
 );
 
 gulp.task( 'test:istanbul', [ 'clean:coverage', 'pre-test', 'test:mocha' ], () =>
 	gulp.src( 'coverage/coverage-final.json' )
+	.pipe( gulpIgnore.exclude( !options.coverage ) )
 	.pipe( remapIstanbul( {
 		fail: true,
 		reports: {
@@ -107,6 +111,7 @@ gulp.task( 'test:istanbul', [ 'clean:coverage', 'pre-test', 'test:mocha' ], () =
 
 gulp.task( 'test:coveralls', [ 'pre-test', 'test:istanbul' ], () =>
 	gulp.src( 'coverage/lcov.info' )
+	.pipe( gulpIgnore.exclude( !options.coverage ) )
 	.pipe( gulpIf( process.env.CI, coveralls() ) )
 );
 
