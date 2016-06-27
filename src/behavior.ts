@@ -4,7 +4,7 @@ export function retry<T,R>( count: number, promise: PromiseGetter<T,R> ) {
 	return select<T,R>( ...Array.from( { length: count }, () => context => promise( context ) ) );
 }
 
-export function repeat<T,R>( promise: PromiseGetter<T,R>, count = Infinity ) {
+export function repeat<T>( promise: PromiseGetter<T,any>, count = Infinity ) {
 	return async ( context: T ) => {
 		for( ; count > 0; count-- ) {
 			await promise( context );

@@ -37,13 +37,13 @@ export default class ErrorBot {
 					sleeping = fsm.createState( 'sleeping' ),
 					paused = fsm.createState( 'paused' );
 
-				listening.on( 'messageReceived', async ( { message }: IFsmMessageReceivedEventArgs ) => {
+				listening.on( 'messageReceived', async ( { message }: FsmMessageReceivedEventArgs ) => {
 					await api.posts.reply( { socket, tid: topicId, content: message } );
 				} );
 				paused.transitions.set( 'pause', new FsmNullTransition );
 				paused.transitions.set( 'unpause', new FsmPopTransition );
 				sleeping.transitions.set( 'wake', new FsmPopTransition );
-				sleeping.on( 'stateEnter', async ( { fsm }: IFsmStateEnterArgs ) => {
+				sleeping.on( 'stateEnter', async ( { fsm }: FsmStateEnterArgs ) => {
 					await wait( 5000 );
 					fsm.sendMessage( 'wake' );
 				} );
@@ -74,7 +74,7 @@ export default class ErrorBot {
 					}
 				} );
 
-				fsm.on( 'stateChange', async ( { previousState, nextState }: IFsmStateChangeArgs ) => {
+				fsm.on( 'stateChange', async ( { previousState, nextState }: FsmStateChangeArgs ) => {
 					await api.posts.reply( { socket, tid: topicId, content: `Changing state: ${previousState} -> ${nextState}` } );
 				} );
 

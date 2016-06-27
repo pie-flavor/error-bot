@@ -1,31 +1,33 @@
 import { Fsm, FsmState, FsmTransition } from './fsm';
 
-declare interface IFsmMessageSentEventArgs {
-	message: string;
-	currentState: FsmState;
-}
+declare global {
+	export interface FsmMessageSentEventArgs {
+		message: string;
+		currentState: FsmState;
+	}
 
-declare interface IFsmMessageReceivedEventArgs {
-	message: string;
-	fsm: Fsm;
-}
+	export interface FsmMessageReceivedEventArgs {
+		message: string;
+		fsm: Fsm;
+	}
 
-declare interface IFsmStateChangeArgs {
-	previousState: FsmState;
-	nextState: FsmState;
-}
+	export interface FsmStateChangeArgs {
+		previousState: FsmState;
+		nextState: FsmState;
+	}
 
-declare interface IFsmStateEnterArgs {
-	previousState: FsmState;
-	fsm: Fsm;
-}
+	export interface FsmStateEnterArgs {
+		previousState: FsmState;
+		fsm: Fsm;
+	}
 
-declare interface IFsmStateExitArgs {
-	nextState: FsmState;
-	fsm: Fsm;
-}
+	export interface FsmStateExitArgs {
+		nextState: FsmState;
+		fsm: Fsm;
+	}
 
-declare interface IFsmTransitionArgs {
-	transition: FsmTransition;
-	fsm: Fsm;
+	export interface FsmTransitionArgs {
+		transition: FsmTransition;
+		fsm: Fsm;
+	}
 }

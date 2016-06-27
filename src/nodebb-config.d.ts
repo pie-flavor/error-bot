@@ -1,4 +1,4 @@
-declare interface INodeBBConfig {
+declare interface NodeBBConfig {
 	environment: string;
 	relative_path: string;
 	version: string;

@@ -60,13 +60,13 @@ export class Fsm extends EventEmitter {
 		return previousState;
 	}
 
-	private onBeforeStateChange( { previousState, nextState }: IFsmStateChangeArgs ) {
+	private onBeforeStateChange( { previousState, nextState }: FsmStateChangeArgs ) {
 		if( previousState ) {
 			previousState.emit( 'stateExit', { nextState, fsm: this } );
 		}
 	}
 
-	private onAfterStateChange( { previousState, nextState }: IFsmStateChangeArgs ) {
+	private onAfterStateChange( { previousState, nextState }: FsmStateChangeArgs ) {
 		if( nextState ) {
 			nextState.emit( 'stateEnter', { previousState, fsm: this } );
 		}

@@ -41,7 +41,10 @@ gulp.task( 'build:typings', [ 'clean:typings' ], () =>
 );
 
 gulp.task( 'build:ts', [ 'clean', 'build:typings' ], () => {
-	const tsproj = typescript.createProject( 'tsconfig.json', { typescript: require( 'typescript' ) } );
+	const tsproj =
+		typescript.createProject( 'tsconfig.json', {
+			typescript: require( 'typescript' )
+		} );
 	return tsproj.src()
 		.pipe( sourcemaps.init() )
 		.pipe( typescript( tsproj ) )
@@ -52,7 +55,7 @@ gulp.task( 'build:ts', [ 'clean', 'build:typings' ], () => {
 gulp.task( 'build', [ 'clean', 'build:ts' ] );
 
 gulp.task( 'lint:tslint', () =>
-	gulp.src( [ 'src/**/*.ts', '!src/**/*.d.ts' ] )
+	gulp.src( [ 'src/**/*.ts' ] )
 	.pipe( tslint() )
 	.pipe( tslint.report( 'verbose', {
 		emitError: true,
