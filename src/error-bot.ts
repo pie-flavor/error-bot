@@ -5,7 +5,7 @@ import NodeBBApi from './nodebb-api';
 
 import SocketQueue from './socket-queue';
 
-import { wait } from './time';
+import { wait } from './async-util';
 
 import { Fsm, FsmState, FsmNullTransition, FsmPushTransition, FsmPopTransition } from './fsm';
 

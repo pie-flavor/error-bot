@@ -1,7 +1,7 @@
 import { userAgent, baseUrl, connectTimeout, emitTimeout } from './config';
 import NodeBBSession from './nodebb-session';
-import { wait } from './time';
 import SocketWaiter from './socket-waiter';
+import { wait } from './async-util';
 
 import * as io from 'socket.io-client';
 
