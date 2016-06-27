@@ -1,0 +1,23 @@
+@startuml
+entity "Command Module" as cm
+entity "Command Queue" as cq
+entity "Module" as m
+entity "Action Queue" as aq
+
+loop
+activate cm
+
+cm -> cq: dequeue
+cq o-> cm: command
+
+alt if command
+loop foreach module in module list
+cm -> m: command
+activate m
+m ->o aq: action
+m -> cm: command
+deactivate m
+end
+end
+end
+@enduml

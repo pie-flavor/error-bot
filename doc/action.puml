@@ -1,0 +1,15 @@
+@startuml
+entity "Action Module" as am
+entity "Action Queue" as aq
+
+loop
+activate am
+am -> aq: dequeue
+aq o-> am: action
+alt if action
+am o-> am: dispatch
+am -> am: sleep
+end
+deactivate am
+end
+@enduml

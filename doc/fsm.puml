@@ -1,0 +1,26 @@
+@startuml
+left to right direction
+skinparam packageStyle rect
+
+state Listening {
+
+}
+
+state Sleeping {
+
+}
+
+state Stack {
+	[*] --> Paused: pause
+	Paused --> [*]: unpause
+
+	state Paused {
+
+	}
+}
+
+[*] --> Listening
+Listening --> Sleeping: sleep
+Sleeping --> Listening: wake
+
+@enduml
