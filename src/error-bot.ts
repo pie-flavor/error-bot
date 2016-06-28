@@ -1,15 +1,15 @@
-import NodeBBSession from './nodebb-session';
-import NodeBBRest from './nodebb-rest';
-import NodeBBSocket from './nodebb-socket';
-import NodeBBApi from './nodebb-api';
+import NodeBBSession from './nodebb/session';
+import NodeBBRest from './nodebb/rest';
+import NodeBBSocket from './nodebb/socket';
+import NodeBBApi from './nodebb/api';
 
 import SocketQueue from './socket-queue';
 
 import { wait } from './async-util';
 
-import { Fsm, FsmState, FsmNullTransition, FsmPushTransition, FsmPopTransition } from './fsm';
+import { cycleDelay } from './config';
 
-import { topicId } from './config';
+import workers from './workers/';
 
 export default class ErrorBot {
 	public async start() {
@@ -25,13 +25,12 @@ export default class ErrorBot {
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
-					queue = new SocketQueue,
-					commands = new WeakMap<FsmState, { [ key: string ]: Function }>();
+					queue = new SocketQueue;
 
 				queue.subscribe( socket.socket,
 					'event:new_notification'
 				);
-
+/*
 				const fsm = new Fsm,
 					listening = fsm.createState( 'listening' ),
 					sleeping = fsm.createState( 'sleeping' ),
@@ -77,31 +76,12 @@ export default class ErrorBot {
 				fsm.on( 'stateChange', async ( { previousState, nextState }: FsmStateChangeArgs ) => {
 					await api.posts.reply( { socket, tid: topicId, content: `Changing state: ${previousState} -> ${nextState}` } );
 				} );
+*/
 
 				for( ; ; ) {
-					await wait( 20 );
-					const [ event = null, args = [] ] = queue.dequeue() || [];
-					if( !event ) { continue; }
-					const [ { tid, pid, bodyLong } ] = args,
-						[ , command = null ] = /@error_bot\s+(.*)$/.exec( bodyLong ) || [];
-					if( !command ) {
-						await api.posts.reply( { socket, tid, toPid: pid, content: `Command not understood` } );
-						continue;
-					}
-					const currentCommands = commands.get( fsm.currentState );
-					const fn = ( currentCommands && currentCommands[ command.toLowerCase() ] );
-					if( fn ) {
-						fn();
-					} else {
-						fsm.sendMessage( command );
-					}
+					await Promise.all( workers.map( worker => worker().catch( null ) ) );
+					await wait( cycleDelay );
 				}
-
-				console.log( 'Logging out...' );
-				await api.auth.logOut( { session, rest } );
-				console.log( 'Logged out' );
-
-				resolve();
 			} catch( ex ) {
 				reject( ex );
 			}

@@ -1,9 +1,9 @@
-import { userAgent, baseUrl } from './config';
+import { userAgent, baseUrl } from '../config';
 import * as rp from 'request-promise';
-import NodeBBSession from './nodebb-session';
+import Session from './session';
 
-export default class NodeBBRest {
-	public get( { session: { jar, config }, path, qs = {}, json = false }: { session: NodeBBSession, path: string, qs?: Object, json?: boolean } ) {
+export default class Rest {
+	public get( { session: { jar, config }, path, qs = {}, json = false }: { session: Session, path: string, qs?: Object, json?: boolean } ) {
 		const headers = { 'User-Agent': userAgent };
 		if( config ) {
 			headers[ 'X-CSRF-Token' ] = config.csrf_token;
@@ -18,7 +18,7 @@ export default class NodeBBRest {
 		} );
 	}
 
-	public post( { session: { jar, config }, path, qs = {}, body = {}, form = {}, json = false }: { session: NodeBBSession, path: string, qs?: Object, body?: Object, form?: Object, json?: boolean } ) {
+	public post( { session: { jar, config }, path, qs = {}, body = {}, form = {}, json = false }: { session: Session, path: string, qs?: Object, body?: Object, form?: Object, json?: boolean } ) {
 		const headers = { 'User-Agent': userAgent };
 		if( config ) {
 			headers[ 'X-CSRF-Token' ] = config.csrf_token;

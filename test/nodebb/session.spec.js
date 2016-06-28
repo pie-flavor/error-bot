@@ -5,7 +5,7 @@ const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' 
 	proxyquire = require( 'proxyquire' ),
 	request = require( 'request' ),
 	{ jar } = request,
-	{ default: NodeBBSession } = require( '../out/nodebb-session' );
+	{ default: NodeBBSession } = require( '../../out/nodebb/session' );
 
 describe( 'NodeBBSession', () => {
 	let session;

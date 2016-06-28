@@ -1,10 +1,10 @@
-import NodeBBSession from './nodebb-session';
-import NodeBBRest from './nodebb-rest';
-import NodeBBSocket from './nodebb-socket';
+import Session from './session';
+import Rest from './rest';
+import Socket from './socket';
 
-type SessionOpts = { session: NodeBBSession };
-type RestOpts = SessionOpts & { rest: NodeBBRest };
-type SocketOpts = { socket: NodeBBSocket };
+type SessionOpts = { session: Session };
+type RestOpts = SessionOpts & { rest: Rest };
+type SocketOpts = { socket: Socket };
 
 async function getConfig( { session, rest }: RestOpts ) {
 	return session.config =
@@ -21,7 +21,7 @@ async function ensureConfig( { session, rest }: RestOpts ) {
 	}
 }
 
-export default class NodeBBApi {
+export default class Api {
 	public async getConfig( { session, rest }: RestOpts ) {
 		return await getConfig( { session, rest } );
 	}

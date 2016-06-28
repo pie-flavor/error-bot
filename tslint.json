@@ -17,7 +17,7 @@
 		],
 		"interface-name": [
 			true,
-			"always-prefix"
+			"never-prefix"
 		],
 		"jsdoc-format": false,
 		"label-position": true,
@@ -98,11 +98,7 @@
 		"triple-equals": [
 			true
 		],
-		"typedef": [
-			true,
-			"parameter",
-			"property-declaration"
-		],
+		"typedef": true,
 		"typedef-whitespace": [
 			true,
 			{
