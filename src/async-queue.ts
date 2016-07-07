@@ -1,56 +1,47 @@
-import { retry, thenAfter, thenFinally } from './async-util';
+import now = require( 'performance-now' );
+import Priority from './priority';
 
-export default class AsyncQueue {
-	public enqueue<T>( fn: () => T|PromiseLike<T>, attempts = 1 ) {
-		return Promise.resolve( this.onEnqueue() )
-			.catch()
-			.then( () => new Promise<T>( ( resolve, reject ) => {
-				const run = () => {
-					return new Promise<T>( ( resolve, reject ) =>
-						Promise.resolve( this.onBeforeEach() )
-							.catch()
-							.then( () =>
-								thenFinally(
-									Promise.resolve( fn() ),
-									() => this.onAfterEach()
-								)
-							)
-					);
-				};
+export default class AsyncQueue<T> {
+	constructor( public rate: number = 0 ) {}
 
-				this._queue =
-					thenAfter(
-						thenAfter( this._queue,
-							() => this.onDequeue()
-						).then( retry( run, attempts ) ),
-						 val => {
-							 resolve( val );
-							 return this.onResolve( val );
-						 },
-						 err => {
-							 reject( val );
-							 return this.onReject( err );
-						 }
-					).catch();
-			} )
-		);
+	public enqueue( fn: () => T|PromiseLike<T>, priority: Priority = Priority.Normal ) {
+		const { queue } = this;
+
+		let fns = queue.get( priority );
+		if( !fns ) {
+			fns = [];
+			queue.set( priority, fns );
+		}
+		fns.push( fn );
 	}
 
-	public onEnqueue: () => void|PromiseLike<void> = () => Promise.resolve();
+	public dequeue(): Promise<T> {
+		const { queue, rate } = this,
+			time = now(),
+			delta = time - this.lastDequeue;
+		if( delta < rate ) {
+			return null;
+		}
 
-	public onDequeue: () => void|PromiseLike<void> = () => Promise.resolve();
+		let fn: () => T|PromiseLike<T>;
+		for( let priority = Priority.Highest; priority >= Priority.Lowest; --priority ) {
+			const fns = queue.get( priority );
+			if( fns ) {
+				fn = fns.shift();
+				if( fn ) {
+					break;
+				}
+			}
+		}
 
-	public onBeforeEach: () => void|PromiseLike<void> = () => Promise.resolve();
+		if( fn ) {
+			this.lastDequeue = now();
+			return Promise.resolve( fn() );
+		} else {
+			return null;
+		}
+	}
 
-	public onAfterEach: () => void|PromiseLike<void> = () => Promise.resolve();
-
-	public onResolve: ( val?: any ) => void|PromiseLike<void> = () => Promise.resolve();
-
-	public onReject: ( err?: any ) => void|PromiseLike<void> = () => Promise.resolve();
-
-	public onRetry: ( err?: any ) => void|PromiseLike<void> = () => Promise.resolve();
-
-	public onEmpty: () => void = () => {};
-
-	private _queue = Promise.resolve();
+	private lastDequeue: number;
+	private queue = new Map<Priority, Array<() => T|PromiseLike<T>>>();
 }
