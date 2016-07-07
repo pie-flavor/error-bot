@@ -3,8 +3,12 @@ import NodeBBSession from './nodebb-session';
 import { wait } from './async-util';
 import { emit, waitFor } from './socket-waiter';
 
+import Priority from './priority';
+import AsyncQueue from './async-queue';
+
 import * as io from 'socket.io-client';
 
+type ConnectOpts = SocketIOClient.ConnectOpts;
 type SessionOpts = { session: NodeBBSession };
 
 export default class NodeBBSocket {
@@ -20,9 +24,11 @@ export default class NodeBBSocket {
 					'User-Agent': userAgent,
 					'Cookie': session.jar.getCookieString( baseUrl )
 				}
-			} as any );
+			} as ConnectOpts );
+		socket.emit( 'foo' );
 		return Promise.race<any>( [
 			waitFor( socket, 'connect' ),
+			waitFor( socket, 'connection' ),
 			waitFor( socket, 'error' ),
 			wait( connectTimeout ).then( () => Promise.reject( new Error( 'connect timeout' ) ) )
 		] ).then( () => new NodeBBSocket( { socket } ) );
@@ -35,6 +41,14 @@ export default class NodeBBSocket {
 			waitFor( socket, 'error' ),
 			wait( emitTimeout ).then( () => Promise.reject( new Error( 'emit timeout' ) ) )
 		] );
+	}
+
+	public subscribe( queue: AsyncQueue<[ string, any[] ]>, event: string, priority = Priority.Normal ) {
+		const { socket } = this;
+
+		socket.on( event, ( ...args ) => {
+			queue.enqueue( () => [ event, args ], priority );
+		} );
 	}
 
 	public socket: SocketIOClient.Socket;

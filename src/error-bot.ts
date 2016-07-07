@@ -1,9 +1,7 @@
 import NodeBBSession from './nodebb-session';
 import NodeBBRest from './nodebb-rest';
 import NodeBBSocket from './nodebb-socket';
-import NodeBBApi from './nodebb-api';
-
-import SocketQueue from './socket-queue';
+import { auth, posts } from './nodebb-api';
 
 import { wait } from './async-util';
 
@@ -11,94 +9,42 @@ import { Fsm, FsmState, FsmNullTransition, FsmPushTransition, FsmPopTransition }
 
 import { topicId } from './config';
 
+import AsyncQueue from './async-queue';
+import asyncQueueModule from './modules/async-queue';
+
 export default class ErrorBot {
 	public async start() {
 		return new Promise( async ( resolve, reject ) => {
 			try {
 				const session = new NodeBBSession,
 					rest = new NodeBBRest,
-					api = new NodeBBApi,
 					{ username, password } = require( '../data/auth.json' );
 
 				console.log( 'Logging in...' );
-				await api.auth.logIn( { session, rest, username, password } );
+				await auth.logIn( { session, rest, username, password } );
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
-					queue = new SocketQueue,
-					commands = new WeakMap<FsmState, { [ key: string ]: Function }>();
+					messageQueue = new AsyncQueue<[string, any[]]>(),
+					actionQueue = new AsyncQueue<void>( 500 ),
+					commandQueue = new AsyncQueue<void>();
 
-				queue.subscribe( socket.socket,
-					'event:new_notification'
-				);
+				socket.subscribe( messageQueue, 'event:new_notification' );
 
-				const fsm = new Fsm,
-					listening = fsm.createState( 'listening' ),
-					sleeping = fsm.createState( 'sleeping' ),
-					paused = fsm.createState( 'paused' );
-
-				listening.on( 'messageReceived', async ( { message }: FsmMessageReceivedEventArgs ) => {
-					await api.posts.reply( { socket, tid: topicId, content: message } );
-				} );
-				paused.transitions.set( 'pause', new FsmNullTransition );
-				paused.transitions.set( 'unpause', new FsmPopTransition );
-				sleeping.transitions.set( 'wake', new FsmPopTransition );
-				sleeping.on( 'stateEnter', async ( { fsm }: FsmStateEnterArgs ) => {
-					await wait( 5000 );
-					fsm.sendMessage( 'wake' );
-				} );
-				fsm.transitions.set( 'pause', new FsmPushTransition( paused ) );
-				fsm.transitions.set( 'sleep', new FsmPushTransition( sleeping ) );
-				fsm.pushState( listening );
-
-				function choose<T>( opts: ArrayLike<T> ) {
-					return opts[ Math.floor( Math.random() * opts.length ) ];
-				}
-
-				commands.set( listening, {
-					async hello() {
-						await api.posts.reply( { socket, tid: topicId, content: choose( [
-							'Hello.',
-							'Hey.',
-							'Howdy.',
-							'Hola.'
-						] ) } );
-					},
-					async goodbye() {
-						await api.posts.reply( { socket, tid: topicId, content: choose( [
-							'Goodbye.',
-							'Bye.',
-							'Adiós.',
-							'Ciao.'
-						] ) } );
-					}
-				} );
-
-				fsm.on( 'stateChange', async ( { previousState, nextState }: FsmStateChangeArgs ) => {
-					await api.posts.reply( { socket, tid: topicId, content: `Changing state: ${previousState} -> ${nextState}` } );
-				} );
+				const modules = [
+					asyncQueueModule( commandQueue ),
+					asyncQueueModule( actionQueue )
+				];
 
 				for( ; ; ) {
-					await wait( 20 );
-					const [ event = null, args = [] ] = queue.dequeue() || [];
-					if( !event ) { continue; }
-					const [ { tid, pid, bodyLong } ] = args,
-						[ , command = null ] = /@error_bot\s+(.*)$/.exec( bodyLong ) || [];
-					if( !command ) {
-						await api.posts.reply( { socket, tid, toPid: pid, content: `Command not understood` } );
-						continue;
+					for( let module of modules ) {
+						module.tick();
 					}
-					const currentCommands = commands.get( fsm.currentState );
-					const fn = ( currentCommands && currentCommands[ command.toLowerCase() ] );
-					if( fn ) {
-						fn();
-					} else {
-						fsm.sendMessage( command );
-					}
+					await wait( 10 );
 				}
 
 				console.log( 'Logging out...' );
-				await api.auth.logOut( { session, rest } );
+				await auth.logOut( { session, rest } );
 				console.log( 'Logged out' );
 
 				resolve();
