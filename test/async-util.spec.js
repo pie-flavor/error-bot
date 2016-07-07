@@ -1,14 +1,10 @@
 const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' ),
 	chai = require( 'chai' ),
 	{ assert, expect } = chai,
-	{ mock, stub, spy } = require( 'sinon' );
+	{ mock, stub, spy } = require( 'sinon' ),
+	now = require( 'performance-now' );
 
 chai.use( require( 'sinon-chai' ) );
-
-function now() {
-	const [ sec, nanoSec ] = process.hrtime();
-	return sec * 1e3 + nanoSec / 1e6;
-}
 
 describe( 'async-util', () => {
 	const { wait, thenFinally } = require( '../out/async-util' );
