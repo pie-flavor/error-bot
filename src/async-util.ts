@@ -5,7 +5,7 @@ export function wait( milliseconds: number ) {
 }
 
 export function retry<T>( promise: () => PromiseLike<T>, attempts: number ) {
-	let retval = Promise.reject();
+	let retval = Promise.reject<T>( null );
 	while( attempts-- > 0 ) {
 		retval = retval.catch( () => promise() );
 	}
@@ -13,7 +13,7 @@ export function retry<T>( promise: () => PromiseLike<T>, attempts: number ) {
 }
 
 export function thenAfter<T>( promise: PromiseLike<T>, resolveHandler: ( value: T ) => any, rejectHandler: ( err: any ) => any ): Promise<T> {
-	return Promise.resolve( promise )
+	return Promise.resolve<T>( promise )
 		.then( value => {
 			if( resolveHandler ) {
 				resolveHandler( value );
@@ -23,7 +23,7 @@ export function thenAfter<T>( promise: PromiseLike<T>, resolveHandler: ( value: 
 				rejectHandler( err );
 			}
 		} )
-		.catch()
+		.catch( null )
 		.then( () => promise );
 }
 
