@@ -1,6 +1,6 @@
 {
 	"baseUrl": "https://what.thedailywtf.com",
-	"userAgent": "error-bot/1.0",
+	"userAgent": "error-bot/1.0 (wtdwtf)",
 	"topicId": 14084,
 	"connectTimeout": 60000,
 	"emitTimeout": 60000,
