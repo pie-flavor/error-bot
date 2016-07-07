@@ -1,6 +1,7 @@
 .*
-!.gitignore
+!.editorconfig
 !.eslintrc.json
+!.gitignore
 !.travis.yml
 coverage/
 node_modules/
