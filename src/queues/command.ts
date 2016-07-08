@@ -1,2 +1,1 @@
-const commandQueue = [] as Command[];
-export default commandQueue;
+export default Array;

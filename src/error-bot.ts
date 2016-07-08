@@ -1,15 +1,16 @@
-import NodeBBSession from './nodebb/session';
-import NodeBBRest from './nodebb/rest';
-import NodeBBSocket from './nodebb/socket';
-import NodeBBApi from './nodebb/api';
-
-import SocketQueue from './socket-queue';
+import NodeBBSession from './nodebb-session';
+import NodeBBRest from './nodebb-rest';
+import NodeBBSocket from './nodebb-socket';
+import { auth, posts } from './nodebb-api';
 
 import { wait } from './async-util';
 
-import { cycleDelay } from './config';
+import { Fsm, FsmState, FsmNullTransition, FsmPushTransition, FsmPopTransition } from './fsm';
 
-import workers from './workers/';
+import { topicId } from './config';
+
+import AsyncQueue from './async-queue';
+import asyncQueueModule from './modules/async-queue';
 
 export default class ErrorBot {
 	public async start() {
@@ -17,71 +18,36 @@ export default class ErrorBot {
 			try {
 				const session = new NodeBBSession,
 					rest = new NodeBBRest,
-					api = new NodeBBApi,
 					{ username, password } = require( '../data/auth.json' );
 
 				console.log( 'Logging in...' );
-				await api.auth.logIn( { session, rest, username, password } );
+				await auth.logIn( { session, rest, username, password } );
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
-					queue = new SocketQueue;
+					messageQueue = new AsyncQueue<[string, any[]]>(),
+					actionQueue = new AsyncQueue<void>( 500 ),
+					commandQueue = new AsyncQueue<void>();
 
-				queue.subscribe( socket.socket,
-					'event:new_notification'
-				);
-/*
-				const fsm = new Fsm,
-					listening = fsm.createState( 'listening' ),
-					sleeping = fsm.createState( 'sleeping' ),
-					paused = fsm.createState( 'paused' );
+				socket.subscribe( messageQueue, 'event:new_notification' );
 
-				listening.on( 'messageReceived', async ( { message }: FsmMessageReceivedEventArgs ) => {
-					await api.posts.reply( { socket, tid: topicId, content: message } );
-				} );
-				paused.transitions.set( 'pause', new FsmNullTransition );
-				paused.transitions.set( 'unpause', new FsmPopTransition );
-				sleeping.transitions.set( 'wake', new FsmPopTransition );
-				sleeping.on( 'stateEnter', async ( { fsm }: FsmStateEnterArgs ) => {
-					await wait( 5000 );
-					fsm.sendMessage( 'wake' );
-				} );
-				fsm.transitions.set( 'pause', new FsmPushTransition( paused ) );
-				fsm.transitions.set( 'sleep', new FsmPushTransition( sleeping ) );
-				fsm.pushState( listening );
-
-				function choose<T>( opts: ArrayLike<T> ) {
-					return opts[ Math.floor( Math.random() * opts.length ) ];
-				}
-
-				commands.set( listening, {
-					async hello() {
-						await api.posts.reply( { socket, tid: topicId, content: choose( [
-							'Hello.',
-							'Hey.',
-							'Howdy.',
-							'Hola.'
-						] ) } );
-					},
-					async goodbye() {
-						await api.posts.reply( { socket, tid: topicId, content: choose( [
-							'Goodbye.',
-							'Bye.',
-							'Adiós.',
-							'Ciao.'
-						] ) } );
-					}
-				} );
-
-				fsm.on( 'stateChange', async ( { previousState, nextState }: FsmStateChangeArgs ) => {
-					await api.posts.reply( { socket, tid: topicId, content: `Changing state: ${previousState} -> ${nextState}` } );
-				} );
-*/
+				const modules = [
+					asyncQueueModule( commandQueue ),
+					asyncQueueModule( actionQueue )
+				];
 
 				for( ; ; ) {
-					await Promise.all( workers.map( worker => worker().catch( null ) ) );
-					await wait( cycleDelay );
+					for( let module of modules ) {
+						module.tick();
+					}
+					await wait( 10 );
 				}
+
+				console.log( 'Logging out...' );
+				await auth.logOut( { session, rest } );
+				console.log( 'Logged out' );
+
+				resolve();
 			} catch( ex ) {
 				reject( ex );
 			}

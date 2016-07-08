@@ -1,0 +1,29 @@
+@startuml
+
+namespace modules {
+	interface chats {
+		+ get( { roomId: number, since: 'recent' } )
+		+ markRead( ? )
+		+ send( { roomId: number, message: string } )
+	}
+
+}
+
+namespace meta {
+	interface rooms {
+		+ leaveCurrent()
+		+ enter( { enter: string } )
+	}
+
+}
+
+interface topics {
+	+ bookmark( { tid: number, index: number } )
+	+ markAsRead( tids: number[] )
+}
+
+interface user {
+	+ checkStatus( ? )
+}
+
+@enduml

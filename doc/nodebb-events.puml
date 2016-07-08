@@ -1,0 +1,10 @@
+@startuml
+namespace event {
+	interface chats {
+		+ receive(): { roomId: number, fromUid: number, message: Message }
+
+
+	}
+}
+
+@enduml

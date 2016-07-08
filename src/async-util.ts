@@ -12,23 +12,21 @@ export function retry<T>( promise: () => PromiseLike<T>, attempts: number ) {
 	return retval;
 }
 
-export function thenAfter<T>( promise: PromiseLike<T>, resolveHandler: ( value: T ) => PromiseLike<void>|void, rejectHandler?: ( err: any ) => PromiseLike<void>|void ): Promise<T> {
-	Promise.resolve( promise )
+export function thenAfter<T>( promise: PromiseLike<T>, resolveHandler: ( value: T ) => any, rejectHandler: ( err: any ) => any ): Promise<T> {
+	return Promise.resolve<T>( promise )
 		.then( value => {
 			if( resolveHandler ) {
-				return resolveHandler( value );
+				resolveHandler( value );
 			}
 		}, err => {
 			if( rejectHandler ) {
-				return rejectHandler( err );
+				rejectHandler( err );
 			}
 		} )
 		.catch( null )
 		.then( () => promise );
-
-	return Promise.resolve( promise );
 }
 
-export function thenFinally<T>( promise: PromiseLike<T>, fn: () => PromiseLike<void>|void ): Promise<T> {
+export function thenFinally<T>( promise: PromiseLike<T>, fn: () => any ): Promise<T> {
 	return thenAfter( promise, fn, fn );
 }
