@@ -1,16 +1,13 @@
-import NodeBBSession from './nodebb-session';
-import NodeBBRest from './nodebb-rest';
-import NodeBBSocket from './nodebb-socket';
-import { auth, posts } from './nodebb-api';
+import NodeBBSession from './nodebb/session';
+import NodeBBRest from './nodebb/rest';
+import NodeBBSocket from './nodebb/socket';
+import { auth, posts } from './nodebb/api';
 
 import { wait } from './async-util';
 
-import { Fsm, FsmState, FsmNullTransition, FsmPushTransition, FsmPopTransition } from './fsm';
-
-import { topicId } from './config';
-
 import AsyncQueue from './async-queue';
 import asyncQueueModule from './modules/async-queue';
+import commandParserModule from './modules/command-parser';
 
 export default class ErrorBot {
 	public async start() {
@@ -29,13 +26,17 @@ export default class ErrorBot {
 					actionQueue = new AsyncQueue<void>( 500 ),
 					commandQueue = new AsyncQueue<void>();
 
+				socket.subscribe( messageQueue, 'event:new_post' );
 				socket.subscribe( messageQueue, 'event:new_notification' );
+				// socket.subscribe( messageQueue, 'event:chats.receive' );
 
-				const modules = [
+				const modules = await Promise.all( [
+					commandParserModule( { socket, session, messageQueue, actionQueue, commandQueue } ),
 					asyncQueueModule( commandQueue ),
 					asyncQueueModule( actionQueue )
-				];
+				] );
 
+				console.log( 'Ready' );
 				for( ; ; ) {
 					for( let module of modules ) {
 						module.tick();

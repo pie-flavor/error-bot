@@ -1,6 +1,6 @@
-import NodeBBSession from './nodebb-session';
-import NodeBBRest from './nodebb-rest';
-import NodeBBSocket from './nodebb-socket';
+import NodeBBSession from './session';
+import NodeBBRest from './rest';
+import NodeBBSocket from './socket';
 
 type SessionOpts = { session: NodeBBSession };
 type RestOpts = SessionOpts & { rest: NodeBBRest };
@@ -57,5 +57,25 @@ export namespace topics {
 
 	export async function markAsRead( { socket, tids }: SocketOpts & { tids: number|number[] } ) {
 		return await socket.emit( 'topics.markAsRead', tids );
+	}
+}
+
+export namespace modules {
+	export namespace chats {
+		export async function send( { socket, roomId, message }: SocketOpts & { roomId: string, message: string } ) {
+			return await socket.emit( 'modules.chats.send', { roomId, message } );
+		}
+	}
+}
+
+export namespace meta {
+	export namespace rooms {
+		export async function leaveCurrent( { socket }: SocketOpts ) {
+			return await socket.emit( 'meta.rooms.leaveCurrent' );
+		}
+
+		export async function enter( { socket }: SocketOpts & { enter: string } ) {
+			return await socket.emit( 'meta.rooms.enter', { enter } );
+		}
 	}
 }

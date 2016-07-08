@@ -1,6 +1,6 @@
 import AsyncQueue from '../async-queue';
 
-export default function<T>( queue: AsyncQueue<T> ): Module {
+export default async function<T>( queue: AsyncQueue<T> ) {
 	let working = false;
 
 	return {
@@ -16,4 +16,4 @@ export default function<T>( queue: AsyncQueue<T> ): Module {
 			promise.then( () => { working = false; } );
 		}
 	};
-}
+};

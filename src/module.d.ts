@@ -1,3 +1,3 @@
-declare interface Module {
+export interface Module {
 	tick(): void;
 }

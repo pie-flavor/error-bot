@@ -3,8 +3,8 @@ import NodeBBSession from './session';
 import { wait } from '../async-util';
 import { emit, waitFor } from '../socket-waiter';
 
-import Priority from './priority';
-import AsyncQueue from './async-queue';
+import Priority from '../priority';
+import AsyncQueue from '../async-queue';
 
 import * as io from 'socket.io-client';
 
