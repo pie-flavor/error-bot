@@ -15,7 +15,7 @@ export default class AsyncQueue<T> {
 		fns.push( fn );
 	}
 
-	public dequeue(): Promise<T> {
+	public dequeue(): () => Promise<T> {
 		const { queue, rate } = this,
 			time = now(),
 			delta = time - this.lastDequeue;
@@ -36,7 +36,7 @@ export default class AsyncQueue<T> {
 
 		if( fn ) {
 			this.lastDequeue = now();
-			return Promise.resolve( fn() );
+			return () => Promise.resolve( fn() );
 		} else {
 			return null;
 		}

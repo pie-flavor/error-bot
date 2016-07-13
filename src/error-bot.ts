@@ -1,5 +1,4 @@
 import NodeBBSession from './nodebb/session';
-import NodeBBRest from './nodebb/rest';
 import NodeBBSocket from './nodebb/socket';
 import { auth, posts } from './nodebb/api';
 
@@ -14,11 +13,10 @@ export default class ErrorBot {
 		return new Promise( async ( resolve, reject ) => {
 			try {
 				const session = new NodeBBSession,
-					rest = new NodeBBRest,
 					{ username, password } = require( '../data/auth.json' );
 
 				console.log( 'Logging in...' );
-				await auth.logIn( { session, rest, username, password } );
+				await auth.logIn( { session, username, password } );
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
@@ -26,12 +24,15 @@ export default class ErrorBot {
 					actionQueue = new AsyncQueue<void>( 500 ),
 					commandQueue = new AsyncQueue<void>();
 
-				socket.subscribe( messageQueue, 'event:new_post' );
+				//socket.subscribe( messageQueue, 'event:new_post' );
 				socket.subscribe( messageQueue, 'event:new_notification' );
 				// socket.subscribe( messageQueue, 'event:chats.receive' );
 
+				const commandParser = await commandParserModule( { socket, messageQueue, actionQueue, commandQueue } );
+
 				const modules = await Promise.all( [
-					commandParserModule( { socket, session, messageQueue, actionQueue, commandQueue } ),
+					// commandParser( { tid: 14084, cwd: 'C:/Users/error/Desktop/zork1', exe: '_zork1.com' } ),
+					commandParser( { tid: 20461, cwd: 'C:/Users/error/Desktop/zork1', exe: '_zork1.com' } ),
 					asyncQueueModule( commandQueue ),
 					asyncQueueModule( actionQueue )
 				] );
@@ -45,7 +46,7 @@ export default class ErrorBot {
 				}
 
 				console.log( 'Logging out...' );
-				await auth.logOut( { session, rest } );
+				await auth.logOut( { session } );
 				console.log( 'Logged out' );
 
 				resolve();

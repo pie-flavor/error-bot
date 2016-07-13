@@ -7,6 +7,7 @@ const config = require( '../data/config.json' ) as {
 	emitTimeout: number;
 	cycleDelay: number;
 	actionDelay: number;
+	retryDelay: number;
 };
 
 export = config;

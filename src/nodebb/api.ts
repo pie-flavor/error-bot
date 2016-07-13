@@ -1,15 +1,14 @@
 import NodeBBSession from './session';
-import NodeBBRest from './rest';
+import { get, post } from './rest';
 import NodeBBSocket from './socket';
 
 type SessionOpts = { session: NodeBBSession };
-type RestOpts = SessionOpts & { rest: NodeBBRest };
 type SocketOpts = { socket: NodeBBSocket };
 
-export async function getConfig( { session, rest }: RestOpts ) {
+export async function getConfig( { session }: SessionOpts ) {
 	const config =
 		session.config =
-		await rest.get( {
+		await get( {
 			session,
 			path: '/api/config',
 			json: true
@@ -18,29 +17,29 @@ export async function getConfig( { session, rest }: RestOpts ) {
 	return config;
 }
 
-async function ensureConfig( { session, rest }: RestOpts ) {
+async function ensureConfig( { session }: SessionOpts ) {
 	if( !session.config ) {
-		await getConfig( { session, rest } );
+		await getConfig( { session } );
 	}
 }
 
 export namespace auth {
-	export async function logOut( { session, rest }: RestOpts ) {
-		await ensureConfig( { session, rest } );
-		await rest.post( {
+	export async function logOut( { session }: SessionOpts ) {
+		await ensureConfig( { session } );
+		await post( {
 			session,
 			path: '/logout'
 		} );
 	}
 
-	export async function logIn( { session, rest, username, password }: RestOpts & { username: string, password: string } ) {
-		await ensureConfig( { session, rest } );
-		await rest.post( {
+	export async function logIn( { session, username, password }: SessionOpts & { username: string, password: string } ) {
+		await ensureConfig( { session } );
+		await post( {
 			session,
 			path: '/login',
 			form: { username, password }
 		} );
-		await getConfig( { session, rest } );
+		await getConfig( { session } );
 	}
 }
 

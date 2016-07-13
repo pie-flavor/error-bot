@@ -1,4 +1,8 @@
 import * as api from '../nodebb/api';
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import striptags = require( 'striptags' );
+import AnsiParser = require( 'node-ansiparser' );
 
 interface NewPostArgs {
 	posts: {
@@ -98,50 +102,142 @@ interface NotificationArgs {
 	datetime: number;
 }
 
-const factory: ModuleFactory = async ( { socket, messageQueue, actionQueue } ) => {
-	actionQueue.enqueue( () => api.meta.rooms.leaveCurrent( { socket } ) );
-	actionQueue.enqueue( () => api.meta.rooms.enter( { socket, enter: 'topic_14084' } ) );
+class OutputAppender extends EventEmitter {
+	public append( str: string ) {
+		this.buffer += str;
+		const currentValue = this.buffer;
+		setTimeout( () => {
+			if( this.buffer !== currentValue ) { return; }
+			this.buffer = '';
+			this.emit( 'output', currentValue );
+		}, 250 );
+	}
+	private buffer = '';
+}
 
-	const handlers = new Map<string, Function>();
+const factory = async (
+	{
+		socket,
+		messageQueue,
+		actionQueue
+	} ) => {
+	return async ( {
+		tid: tid_active,
+		cwd,
+		exe
+	} ) => {
+		const outputAppender = new OutputAppender;
 
-	handlers.set( 'event:chats.receive', ( args: ChatReceiveArgs ) => {
-		if( args.self ) {
-			return;
+		function writeln( content: string ) {
+			actionQueue.enqueue( () => api.posts.reply( { socket, tid: tid_active, content } ) );
 		}
-		const { roomId, message: { content: message } } = args;
-		actionQueue.enqueue( () => api.modules.chats.send( { socket, roomId, message } ) );
-	} );
-	handlers.set( 'event:new_post', ( args: NewPostArgs ) => {
-		console.log( args );
-		for( let { pid, tid, content, selfPost, ip, user: { userslug } } of args.posts ) {
-			if( selfPost || ip ) {
-				continue;
+
+		outputAppender.on( 'output', content => {
+			writeln( content );
+		} );
+
+		const parser = new AnsiParser( {
+			inst_p(s) {
+				outputAppender.append( s );
+			},
+			inst_x(flag) {
+				outputAppender.append( flag );
 			}
-			if( !/@error_bot/i.test( content ) ) {
-				continue;
-			}
-			actionQueue.enqueue( () => api.posts.reply( { socket, toPid: pid, tid, content: `@${userslug}\n\n${content}` } ) );
-		}
-	} );
-	handlers.set( 'event:new_notification', ( args: NotificationArgs ) => {
-		const { bodyLong, pid, tid } = args;
-		actionQueue.enqueue( () => api.posts.reply( { socket, toPid: pid, tid, content: bodyLong } ) );
-	} );
-	return {
-		tick() {
-			const promise = messageQueue.dequeue();
-			if( !promise ) {
+		} );
+
+		const zork =
+				spawn(
+					'C:/Users/error/Desktop/msdos/binary/i486_x64/msdos.exe',
+					[ exe ],
+					{
+						shell: true,
+						cwd
+					}
+			);
+			zork.stdout.on( 'data', ( data: Buffer ) => {
+				parser.parse( data + '' );
+			} );
+
+			zork.stderr.on( 'data', ( data: Buffer ) => {
+				console.error( `Error: ${data + ''}` );
+				writeln( `**Error**: ${data + ''}\n` );
+			} );
+
+			zork.on( 'close', ( code: number ) => {
+				const msg = `child process exited with code ${code}`;
+				if( code === 0 ) {
+					console.log( msg );
+				} else {
+					console.error( msg );
+				}
+				writeln( msg );
+			} );
+
+
+		const handlers = new Map<string, Function>();
+	/*
+		handlers.set( 'event:chats.receive', ( args: ChatReceiveArgs ) => {
+			if( args.self ) {
 				return;
 			}
+			const { roomId, message: { content: message } } = args;
+			actionQueue.enqueue( () => api.modules.chats.send( { socket, roomId, message } ) );
+		} );
+	*/
 
-			promise.then( ( [ message, args ] ) => {
-				const handler = handlers.get( message );
-				if( !handler ) {
+		function command( cmd: string ) {
+			cmd =
+				cmd.replace( /\r/g, '' )
+				.split( '\n' )
+				.map( s => striptags( s ).trim() )
+				.map( s => s.replace( /\*|\[|\]|\(|\)/g, '' ).trim() )
+				.filter( s => !/^@[-a-z0-9_]+\ssaid/i.test( s ) )
+				.map( s => s.replace( /@error_bot\s*/gi, '' ).trim() )
+				.filter( s => !!s )
+				.filter( s => !/^>\s*/i.test( s ) ) // no quotes
+				.join( '\n' );
+			if( !cmd ) {
+				return;
+			}
+			console.log( cmd );
+			zork.stdin.write( cmd + '\n' );
+		}
+
+	/*
+		handlers.set( 'event:new_post', ( args: NewPostArgs ) => {
+			// console.log( args );
+			for( let { tid, content, selfPost, ip } of args.posts ) {
+				if( tid !== tid_active || selfPost || ip ) {
+					continue;
+				}
+
+			}
+		} );
+	*/
+
+		handlers.set( 'event:new_notification', ( args: NotificationArgs ) => {
+			const { bodyLong, tid } = args;
+			if( tid !== tid_active ) { return; }
+			command( bodyLong );
+			// actionQueue.enqueue( () => api.posts.reply( { socket, toPid: pid, tid, content: bodyLong } ) );
+		} );
+
+		return {
+			tick() {
+				const promise = messageQueue.dequeue();
+				if( !promise ) {
 					return;
 				}
-				handler( ...args );
-			} );
-		}
+
+				promise().then( ( [ message, args ] ) => {
+					const handler = handlers.get( message );
+					if( !handler ) {
+						return;
+					}
+					handler( ...args );
+				} );
+			}
+		};
 	};
 };
 

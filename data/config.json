@@ -5,5 +5,6 @@
 	"connectTimeout": 60000,
 	"emitTimeout": 60000,
 	"cycleDelay": 15,
-	"actionDelay": 500
+	"actionDelay": 500,
+	"retryDelay": 5000
 }
