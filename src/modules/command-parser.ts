@@ -164,9 +164,9 @@ const factory = async (
 			cmd.replace( /\r/g, '' )
 			.split( '\n' )
 			.map( s => striptags( s ).trim() )
+			.filter( s => !/^\s*[->@\*]/i.test( s ) )
 			.map( s => s.replace( /\*|\[|\]|\(|\)|\`/g, '' ).trim() )
 			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
-			.filter( s => !/^\s*[->@\*]/i.test( s ) )
 			.filter( s => !!s )
 			.join( '\n' );
 		if( !cmd ) {
