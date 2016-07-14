@@ -20,22 +20,24 @@ export default class ErrorBot {
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
-					messageQueue = new AsyncQueue<[string, any[]]>(),
-					actionQueue = new AsyncQueue<void>( 500 ),
-					commandQueue = new AsyncQueue<void>();
+					actionQueue = new AsyncQueue<void>( 500 );
 
-				//socket.subscribe( messageQueue, 'event:new_post' );
-				socket.subscribe( messageQueue, 'event:new_notification' );
-				// socket.subscribe( messageQueue, 'event:chats.receive' );
+				const games = [
+					// TDWTF Plays Zork I
+					{ tid: 20461, url: 'http://localhost:1337/', messageQueue: new AsyncQueue<[string, any[]]>() },
+					// Error_Bot in the Works
+					{ tid: 14084, url: 'http://localhost:1338/', messageQueue: new AsyncQueue<[string, any[]]>() }
+				];
 
-				const commandParser = await commandParserModule( { socket, messageQueue, actionQueue, commandQueue } );
+				const modules =
+					[
+						await asyncQueueModule( actionQueue )
+					];
 
-				const modules = await Promise.all( [
-					// commandParser( { tid: 14084, cwd: 'C:/Users/error/Desktop/zork1', exe: '_zork1.com' } ),
-					commandParser( { tid: 20461, cwd: 'C:/Users/error/Desktop/zork1', exe: '_zork1.com' } ),
-					asyncQueueModule( commandQueue ),
-					asyncQueueModule( actionQueue )
-				] );
+				for( let { tid, url, messageQueue } of games ) {
+					socket.subscribe( messageQueue, 'event:new_notification' );
+					modules.push( await commandParserModule( { socket, tid, url, messageQueue, actionQueue } ) );
+				}
 
 				console.log( 'Ready' );
 				for( ; ; ) {

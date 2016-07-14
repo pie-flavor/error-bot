@@ -1,8 +1,8 @@
 import * as api from '../nodebb/api';
-import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import striptags = require( 'striptags' );
-import AnsiParser = require( 'node-ansiparser' );
+
+import * as rp from 'request-promise';
 
 interface NewPostArgs {
 	posts: {
@@ -110,7 +110,7 @@ class OutputAppender extends EventEmitter {
 			if( this.buffer !== currentValue ) { return; }
 			this.buffer = '';
 			this.emit( 'output', currentValue );
-		}, 250 );
+		}, 1000 );
 	}
 	private buffer = '';
 }
@@ -119,125 +119,90 @@ const factory = async (
 	{
 		socket,
 		messageQueue,
-		actionQueue
+		actionQueue,
+		url,
+		tid: tid_active
 	} ) => {
-	return async ( {
-		tid: tid_active,
-		cwd,
-		exe
-	} ) => {
-		const outputAppender = new OutputAppender;
+	const outputAppender = new OutputAppender;
 
-		function writeln( content: string ) {
-			actionQueue.enqueue( () => api.posts.reply( { socket, tid: tid_active, content } ) );
+	function writeln( content: string ) {
+		actionQueue.enqueue( () => api.posts.reply( { socket, tid: tid_active, content } ) );
+	}
+
+	outputAppender.on( 'output', content => {
+		writeln( content );
+	} );
+
+	( async function pollLoop() {
+		async function poll( path: string ) {
+			const body = await rp( {
+				method: 'GET',
+				url: url + path
+			} );
+			return body;
 		}
 
-		outputAppender.on( 'output', content => {
-			writeln( content );
-		} );
-
-		const parser = new AnsiParser( {
-			inst_p(s) {
-				outputAppender.append( s );
-			},
-			inst_x(flag) {
-				outputAppender.append( flag );
+		try {
+			const stdout = await poll( 'stdout' ),
+				stderr = await poll( 'stderr' );
+			if( stdout ) {
+				outputAppender.append( stdout );
 			}
-		} );
-
-		const zork =
-				spawn(
-					'C:/Users/error/Desktop/msdos/binary/i486_x64/msdos.exe',
-					[ exe ],
-					{
-						shell: true,
-						cwd
-					}
-			);
-			zork.stdout.on( 'data', ( data: Buffer ) => {
-				parser.parse( data + '' );
-			} );
-
-			zork.stderr.on( 'data', ( data: Buffer ) => {
-				console.error( `Error: ${data + ''}` );
-				writeln( `**Error**: ${data + ''}\n` );
-			} );
-
-			zork.on( 'close', ( code: number ) => {
-				const msg = `child process exited with code ${code}`;
-				if( code === 0 ) {
-					console.log( msg );
-				} else {
-					console.error( msg );
-				}
-				writeln( msg );
-			} );
-
-
-		const handlers = new Map<string, Function>();
-	/*
-		handlers.set( 'event:chats.receive', ( args: ChatReceiveArgs ) => {
-			if( args.self ) {
-				return;
+			if( stderr ) {
+				console.error( stderr );
 			}
-			const { roomId, message: { content: message } } = args;
-			actionQueue.enqueue( () => api.modules.chats.send( { socket, roomId, message } ) );
-		} );
-	*/
-
-		function command( cmd: string ) {
-			cmd =
-				cmd.replace( /\r/g, '' )
-				.split( '\n' )
-				.map( s => striptags( s ).trim() )
-				.map( s => s.replace( /\*|\[|\]|\(|\)/g, '' ).trim() )
-				.filter( s => !/^@[-a-z0-9_]+\ssaid/i.test( s ) )
-				.map( s => s.replace( /@error_bot\s*/gi, '' ).trim() )
-				.filter( s => !!s )
-				.filter( s => !/^>\s*/i.test( s ) ) // no quotes
-				.join( '\n' );
-			if( !cmd ) {
-				return;
-			}
-			console.log( cmd );
-			zork.stdin.write( cmd + '\n' );
+		} catch( ex ) {
+			console.error( ex );
+			setTimeout( pollLoop, 10000 );
+			throw ex;
 		}
+		setTimeout( pollLoop, 50 );
+	} )();
 
-	/*
-		handlers.set( 'event:new_post', ( args: NewPostArgs ) => {
-			// console.log( args );
-			for( let { tid, content, selfPost, ip } of args.posts ) {
-				if( tid !== tid_active || selfPost || ip ) {
-					continue;
-				}
+	async function command( cmd: string ) {
+		cmd =
+			cmd.replace( /\r/g, '' )
+			.split( '\n' )
+			.map( s => striptags( s ).trim() )
+			.map( s => s.replace( /\*|\[|\]|\(|\)|\`/g, '' ).trim() )
+			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
+			.filter( s => !/^\s*[->@\*]/i.test( s ) )
+			.filter( s => !!s )
+			.join( '\n' );
+		if( !cmd ) {
+			return;
+		}
+		await rp( {
+			method: 'PUT',
+			url: url + 'stdin',
+			body: cmd + '\n',
+			headers: { 'Content-Type': 'text/plain' }
+		} );
+	}
 
+	const handlers = new Map<string, Function>();
+
+	handlers.set( 'event:new_notification', ( args: NotificationArgs ) => {
+		const { bodyLong, tid } = args;
+		if( tid !== tid_active ) { return; }
+		command( bodyLong );
+	} );
+
+	return {
+		tick() {
+			const promise = messageQueue.dequeue();
+			if( !promise ) {
+				return;
 			}
-		} );
-	*/
 
-		handlers.set( 'event:new_notification', ( args: NotificationArgs ) => {
-			const { bodyLong, tid } = args;
-			if( tid !== tid_active ) { return; }
-			command( bodyLong );
-			// actionQueue.enqueue( () => api.posts.reply( { socket, toPid: pid, tid, content: bodyLong } ) );
-		} );
-
-		return {
-			tick() {
-				const promise = messageQueue.dequeue();
-				if( !promise ) {
+			promise().then( ( [ message, args ] ) => {
+				const handler = handlers.get( message );
+				if( !handler ) {
 					return;
 				}
-
-				promise().then( ( [ message, args ] ) => {
-					const handler = handlers.get( message );
-					if( !handler ) {
-						return;
-					}
-					handler( ...args );
-				} );
-			}
-		};
+				handler( ...args );
+			} );
+		}
 	};
 };
 
