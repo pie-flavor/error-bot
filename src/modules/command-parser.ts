@@ -2,6 +2,8 @@ import * as api from '../nodebb/api';
 import { EventEmitter } from 'events';
 import striptags = require( 'striptags' );
 
+import Schedule from '../schedule';
+
 import * as rp from 'request-promise';
 
 interface NewPostArgs {
@@ -133,40 +135,38 @@ const factory = async (
 		writeln( content );
 	} );
 
-	( async function pollLoop() {
-		async function poll( path: string ) {
-			const body = await rp( {
-				method: 'GET',
-				url: url + path
-			} );
-			return body;
-		}
+	async function poll( path: string ) {
+		const body = await rp( {
+			method: 'GET',
+			url: url + path
+		} );
+		return body;
+	}
 
-		try {
-			const stdout = await poll( 'stdout' ),
-				stderr = await poll( 'stderr' );
-			if( stdout ) {
-				outputAppender.append( stdout );
-			}
-			if( stderr ) {
-				console.error( stderr );
-			}
-		} catch( ex ) {
-			console.error( ex );
-			setTimeout( pollLoop, 10000 );
-			throw ex;
+	const schedule = new Schedule;
+	schedule.addTask( async () => {
+		const stdout = await poll( 'stdout' );
+		if( stdout ) {
+			outputAppender.append( stdout );
 		}
-		setTimeout( pollLoop, 50 );
-	} )();
+	}, { interval: 50 } );
+
+	schedule.addTask( async () => {
+		const stderr = await poll( 'stderr' );
+		if( stderr ) {
+			console.error( stderr );
+		}
+	}, { interval: 50 } );
 
 	async function command( cmd: string ) {
 		cmd =
 			cmd.replace( /\r/g, '' )
 			.split( '\n' )
 			.map( s => striptags( s ).trim() )
-			.filter( s => !/^\s*[->@\*]/i.test( s ) )
+			.filter( s => !/^@[-_\w\d]\s+said\s+in\s+/i.test( s ) )
 			.map( s => s.replace( /\*|\[|\]|\(|\)|\`/g, '' ).trim() )
 			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
+			.filter( s => !/^[->@\*]/i.test( s ) )
 			.filter( s => !!s )
 			.join( '\n' );
 		if( !cmd ) {
@@ -188,20 +188,23 @@ const factory = async (
 		command( bodyLong );
 	} );
 
+	schedule.addTask( async () => {
+		const promise = messageQueue.dequeue();
+		if( !promise ) {
+			return { skip: true };
+		}
+
+		const [ message, args ] = await promise(),
+			handler = handlers.get( message );
+		if( !handler ) {
+			return;
+		}
+		handler( ...args );
+	}, { interval: 20 } );
+
 	return {
 		tick() {
-			const promise = messageQueue.dequeue();
-			if( !promise ) {
-				return;
-			}
-
-			promise().then( ( [ message, args ] ) => {
-				const handler = handlers.get( message );
-				if( !handler ) {
-					return;
-				}
-				handler( ...args );
-			} );
+			schedule.runTask();
 		}
 	};
 };
