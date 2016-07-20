@@ -1,17 +1,21 @@
-import AsyncQueue from '../async-queue';
 import { wait } from '../async-util';
-import { retryDelay } from '../config';
 
 import Schedule from '../schedule';
 
-export default async function<T>( queue: AsyncQueue<T> ) {
+type FactoryOpts = {
+	queue: Array<() => Promise<void>>;
+	delay: number;
+	attempts?: number;
+	retryDelay: number;
+};
+const factory = async function( { queue, delay, attempts = 1, retryDelay }: FactoryOpts ) {
 	const schedule = new Schedule;
 	schedule.addTask( async () => {
-		const promise = queue.dequeue();
+		const promise = queue.shift();
 		if( !promise ) {
-			return;
+			return { skip: true };
 		}
-		for( let i = 0; i < 5; ++i ) {
+		for( let i = 0; i < attempts; ++i ) {
 			try {
 				await promise();
 				break;
@@ -20,11 +24,9 @@ export default async function<T>( queue: AsyncQueue<T> ) {
 				await wait( retryDelay );
 			}
 		}
-	}, { interval: 10 } );
+	}, { interval: delay } );
 
-	return {
-		tick() {
-			schedule.runTask();
-		}
-	};
+	return schedule;
 };
+
+export default factory;

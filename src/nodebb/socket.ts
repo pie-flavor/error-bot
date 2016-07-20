@@ -3,9 +3,6 @@ import NodeBBSession from './session';
 import { wait } from '../async-util';
 import { emit, waitFor } from '../socket-waiter';
 
-import Priority from '../priority';
-import AsyncQueue from '../async-queue';
-
 import * as io from 'socket.io-client';
 
 type ConnectOpts = SocketIOClient.ConnectOpts;
@@ -43,11 +40,11 @@ export default class NodeBBSocket {
 		] );
 	}
 
-	public subscribe( queue: AsyncQueue<[ string, any[] ]>, event: string, priority = Priority.Normal ) {
+	public subscribe( queue: [ string, any[] ][], event: string ) {
 		const { socket } = this;
 
 		socket.on( event, ( ...args ) => {
-			queue.enqueue( () => [ event, args ], priority );
+			queue.push( [ event, args ] );
 		} );
 	}
 

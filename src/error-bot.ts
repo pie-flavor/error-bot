@@ -4,7 +4,6 @@ import { auth, posts } from './nodebb/api';
 
 import { wait } from './async-util';
 
-import AsyncQueue from './async-queue';
 import asyncQueueModule from './modules/async-queue';
 import commandParserModule from './modules/command-parser';
 
@@ -20,18 +19,18 @@ export default class ErrorBot {
 				console.log( 'Logged in' );
 
 				const socket = await NodeBBSocket.connect( { session } ),
-					actionQueue = new AsyncQueue<void>( 500 );
+					actionQueue: Array<() => Promise<void>> = [];
 
 				const games = [
 					// TDWTF Plays Zork I
-					{ tid: 20461, url: 'http://localhost:1337/', messageQueue: new AsyncQueue<[string, any[]]>() },
+					{ tid: 20461, url: 'http://localhost:1337/', messageQueue: [] }
 					// Error_Bot in the Works
-					{ tid: 14084, url: 'http://localhost:1338/', messageQueue: new AsyncQueue<[string, any[]]>() }
+					// { tid: 14084, url: 'http://localhost:1338/', messageQueue: [] }
 				];
 
 				const modules =
 					[
-						await asyncQueueModule( actionQueue )
+						await asyncQueueModule( { queue: actionQueue, delay: 5000, attempts: 5, retryDelay: 2500 } )
 					];
 
 				for( let { tid, url, messageQueue } of games ) {
@@ -42,7 +41,7 @@ export default class ErrorBot {
 				console.log( 'Ready' );
 				for( ; ; ) {
 					for( let module of modules ) {
-						module.tick();
+						module.runTask();
 					}
 					await wait( 10 );
 				}

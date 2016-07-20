@@ -1,6 +1,7 @@
 import * as api from '../nodebb/api';
 import { EventEmitter } from 'events';
 import striptags = require( 'striptags' );
+import NodeBBSocket from '../nodebb/socket';
 
 import Schedule from '../schedule';
 
@@ -104,18 +105,13 @@ interface NotificationArgs {
 	datetime: number;
 }
 
-class OutputAppender extends EventEmitter {
-	public append( str: string ) {
-		this.buffer += str;
-		const currentValue = this.buffer;
-		setTimeout( () => {
-			if( this.buffer !== currentValue ) { return; }
-			this.buffer = '';
-			this.emit( 'output', currentValue );
-		}, 1000 );
-	}
-	private buffer = '';
-}
+type FactoryOpts = {
+	socket: NodeBBSocket;
+	messageQueue: Array<[ string, any[] ]>;
+	actionQueue: Array<() => Promise<void>>;
+	url: string;
+	tid: number;
+};
 
 const factory = async (
 	{
@@ -124,16 +120,11 @@ const factory = async (
 		actionQueue,
 		url,
 		tid: tid_active
-	} ) => {
-	const outputAppender = new OutputAppender;
+	}: FactoryOpts ) => {
 
 	function writeln( content: string ) {
-		actionQueue.enqueue( () => api.posts.reply( { socket, tid: tid_active, content } ) );
+		actionQueue.push( () => api.posts.reply( { socket, tid: tid_active, content } ) );
 	}
-
-	outputAppender.on( 'output', content => {
-		writeln( content );
-	} );
 
 	async function poll( path: string ) {
 		const body = await rp( {
@@ -143,11 +134,15 @@ const factory = async (
 		return body;
 	}
 
+	let outBuffer = '';
 	const schedule = new Schedule;
 	schedule.addTask( async () => {
 		const stdout = await poll( 'stdout' );
 		if( stdout ) {
-			outputAppender.append( stdout );
+			outBuffer += stdout;
+		} else if( outBuffer ) {
+			writeln( outBuffer );
+			outBuffer = '';
 		}
 	}, { interval: 50 } );
 
@@ -163,7 +158,7 @@ const factory = async (
 			cmd.replace( /\r/g, '' )
 			.split( '\n' )
 			.map( s => striptags( s ).trim() )
-			.filter( s => !/^@[-_\w\d]\s+said\s+in\s+/i.test( s ) )
+			.filter( s => !/^@[-_\w\d]+\s+said\s+in\s+/i.test( s ) )
 			.map( s => s.replace( /\*|\[|\]|\(|\)|\`/g, '' ).trim() )
 			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
 			.filter( s => !/^[->@\*]/i.test( s ) )
@@ -189,12 +184,11 @@ const factory = async (
 	} );
 
 	schedule.addTask( async () => {
-		const promise = messageQueue.dequeue();
-		if( !promise ) {
+		if( !messageQueue.length ) {
 			return { skip: true };
 		}
 
-		const [ message, args ] = await promise(),
+		const [ message, args ] = await messageQueue.shift(),
 			handler = handlers.get( message );
 		if( !handler ) {
 			return;
@@ -202,11 +196,7 @@ const factory = async (
 		handler( ...args );
 	}, { interval: 20 } );
 
-	return {
-		tick() {
-			schedule.runTask();
-		}
-	};
+	return schedule;
 };
 
 export default factory;
