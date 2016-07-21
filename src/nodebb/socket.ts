@@ -16,6 +16,7 @@ export default class NodeBBSocket {
 	public static connect( { session }: SessionOpts ) {
 		const socket =
 			io( baseUrl, {
+				rejectUnauthorized: false,
 				transports: [ 'websocket', 'polling' ],
 				extraHeaders: {
 					'User-Agent': userAgent,
