@@ -6,6 +6,7 @@ import NodeBBSocket from '../nodebb/socket';
 import Schedule from '../schedule';
 
 import * as rp from 'request-promise';
+import * as WebSocket from 'ws';
 
 interface NewPostArgs {
 	posts: {
@@ -113,6 +114,39 @@ type FactoryOpts = {
 	tid: number;
 };
 
+class Sock extends EventEmitter {
+	constructor( public url: string ) {
+		super();
+		const ws = this.ws = new WebSocket( url );
+
+		ws.addEventListener( 'message', ( { data } ) => {
+			data = ( data || '' ) + '';
+			console.log( `recv> ${JSON.stringify(data)}` );
+			this.buffer += data;
+		} );
+
+		for( let evt of [ 'open', 'close', 'error', 'message' ] ) {
+			ws.addEventListener( evt, this.emit.bind( this, evt ), false );
+		}
+
+		ws.addEventListener( 'error', console.error.bind( console ), false );
+	}
+
+	public read() {
+		const { buffer } = this;
+		this.buffer = '';
+		return buffer;
+	}
+
+	public write( msg: string ) {
+		console.log( `send> ${JSON.stringify(msg)}` );
+		this.ws.send( msg );
+	}
+
+	private ws: WebSocket;
+	private buffer = '';
+}
+
 const factory = async (
 	{
 		socket,
@@ -122,24 +156,27 @@ const factory = async (
 		tid: tid_active
 	}: FactoryOpts ) => {
 
+	function escapeMarkdown( str ) {
+		return str.replace( /\[|\]|\(|\)|\*|\>|\`|\_|\\|-/g, s => `\\${s}` );
+	}
+
 	function writeln( content: string ) {
+		content = escapeMarkdown( content || '' );
 		actionQueue.push( () => api.posts.reply( { socket, tid: tid_active, content } ) );
 	}
 
-	async function poll( path: string ) {
-		const body = await rp( {
-			method: 'GET',
-			url: url + path
-		} );
-		return body;
-	}
-
 	let outBuffer = '';
+
+	const stdin = new Sock( `${url}ws/stdin` ),
+		stdout = new Sock( `${url}ws/stdout` ),
+		stderr = new Sock( `${url}ws/stderr` );
+
 	const schedule = new Schedule;
 	schedule.addTask( async () => {
-		const stdout = await poll( 'stdout' );
-		if( stdout ) {
-			outBuffer += stdout;
+		const data = stdout.read();
+
+		if( data ) {
+			outBuffer += data;
 		} else if( outBuffer ) {
 			writeln( outBuffer );
 			outBuffer = '';
@@ -147,9 +184,9 @@ const factory = async (
 	}, { interval: 50 } );
 
 	schedule.addTask( async () => {
-		const stderr = await poll( 'stderr' );
-		if( stderr ) {
-			console.error( stderr );
+		const data = stderr.read();
+		if( data ) {
+			console.error( data );
 		}
 	}, { interval: 50 } );
 
@@ -159,7 +196,7 @@ const factory = async (
 			.split( '\n' )
 			.map( s => striptags( s ).trim() )
 			.filter( s => !/^@[-_\w\d]+\s+said\s+in\s+/i.test( s ) )
-			.map( s => s.replace( /\*|\[|\]|\(|\)|\`/g, '' ).trim() )
+			.map( s => s.replace( /\[|\]|\(|\)|\*|\>|\`/g, '' ).trim() )
 			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
 			.filter( s => !/^[->@\*]/i.test( s ) )
 			.filter( s => !!s )
@@ -167,12 +204,8 @@ const factory = async (
 		if( !cmd ) {
 			return;
 		}
-		await rp( {
-			method: 'PUT',
-			url: url + 'stdin',
-			body: cmd + '\n',
-			headers: { 'Content-Type': 'text/plain' }
-		} );
+		console.log( `cmd> ${JSON.stringify(cmd)}` );
+		stdin.write( cmd + '\n' );
 	}
 
 	const handlers = new Map<string, Function>();

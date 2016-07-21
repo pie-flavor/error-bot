@@ -15,7 +15,8 @@
     "socketio-wildcard": "^0.3.0",
     "source-map-support": "^0.4.1",
     "striptags": "^2.1.1",
-    "url2": "^1.0.4"
+    "url2": "^1.0.4",
+    "ws": "^1.1.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
