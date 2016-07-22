@@ -196,9 +196,9 @@ const factory = async (
 			.split( '\n' )
 			.map( s => striptags( s ).trim() )
 			.filter( s => !/^@[-_\w\d]+\s+said\s+in\s+/i.test( s ) )
-			.map( s => s.replace( /\[|\]|\(|\)|\*|\>|\`/g, '' ).trim() )
 			.map( s => s.replace( /@error_bot/gi, '' ).trim() )
 			.filter( s => !/^[->@\*]/i.test( s ) )
+			.map( s => s.replace( /\[|\]|\(|\)|\*|\>|\`/g, '' ).trim() )
 			.filter( s => !!s )
 			.join( '\n' );
 		if( !cmd ) {
