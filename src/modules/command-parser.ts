@@ -181,7 +181,7 @@ const factory = async (
 			writeln( outBuffer );
 			outBuffer = '';
 		}
-	}, { interval: 50 } );
+	}, { interval: 100 } );
 
 	schedule.addTask( async () => {
 		const data = stderr.read();
