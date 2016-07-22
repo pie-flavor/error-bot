@@ -23,7 +23,9 @@ export default class ErrorBot {
 
 				const games = [
 					// TDWTF Plays Zork I
-					{ tid: 20461, url: 'http://localhost:1337/', messageQueue: [] }
+					{ tid: 20461, url: 'http://localhost:1338/', messageQueue: [] },
+					// TDWTF Plays Sorcerer
+					{ tid: 20539, url: 'http://localhost:1339/', messageQueue: [] }
 					// Error_Bot in the Works
 					// { tid: 14084, url: 'http://localhost:1338/', messageQueue: [] }
 				];
