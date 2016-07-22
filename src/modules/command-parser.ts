@@ -157,7 +157,7 @@ const factory = async (
 	}: FactoryOpts ) => {
 
 	function escapeMarkdown( str ) {
-		return str.replace( /\[|\]|\(|\)|\*|\>|\`|\_|\\|-/g, s => `\\${s}` );
+		return str.replace( /\[|\]|\(|\)|\*|\>|\`|\_|\\/g, s => `\\${s}` );
 	}
 
 	function writeln( content: string ) {
