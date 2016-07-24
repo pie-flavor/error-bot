@@ -3,6 +3,8 @@ import { EventEmitter } from 'events';
 import striptags = require( 'striptags' );
 import NodeBBSocket from '../nodebb/socket';
 
+import now = require( 'performance-now' );
+
 import Schedule from '../schedule';
 
 import * as rp from 'request-promise';
@@ -121,8 +123,10 @@ class Sock extends EventEmitter {
 
 		ws.addEventListener( 'message', ( { data } ) => {
 			data = ( data || '' ) + '';
+			if( !data ) { return; }
+			data = JSON.parse( data );
 			console.log( `recv> ${JSON.stringify(data)}` );
-			this.buffer += data;
+			this.messages.push( data );
 		} );
 
 		for( let evt of [ 'open', 'close', 'error', 'message' ] ) {
@@ -133,18 +137,43 @@ class Sock extends EventEmitter {
 	}
 
 	public read() {
-		const { buffer } = this;
-		this.buffer = '';
-		return buffer;
+		const { messages } = this;
+		return messages.shift();
 	}
 
-	public write( msg: string ) {
+	public write( msg ) {
 		console.log( `send> ${JSON.stringify(msg)}` );
-		this.ws.send( msg );
+		this.ws.send( JSON.stringify(msg) );
 	}
 
 	private ws: WebSocket;
+	private messages = [];
+}
+
+class Buffer {
+	public append( data: string ) {
+		this.lastAppend = now();
+		this.buffer += ( data || '' ) + '';
+	}
+
+	public clear() {
+		const retval = this.buffer;
+		this.lastAppend = null;
+		this.buffer = '';
+		return retval;
+	}
+
+	public get timeSinceAppend() {
+		const { lastAppend } = this;
+		if( lastAppend ) {
+			return Math.max( 0, now() - lastAppend );
+		} else {
+			return null;
+		}
+	}
+
 	private buffer = '';
+	private lastAppend: number = null;
 }
 
 const factory = async (
@@ -165,30 +194,39 @@ const factory = async (
 		actionQueue.push( () => api.posts.reply( { socket, tid: tid_active, content } ) );
 	}
 
-	let outBuffer = '';
+	let buffers = {
+		stdout: new Buffer,
+		stderr: new Buffer
+	};
 
-	const stdin = new Sock( `${url}ws/stdin` ),
-		stdout = new Sock( `${url}ws/stdout` ),
-		stderr = new Sock( `${url}ws/stderr` );
+	const sock = new Sock( url );
 
 	const schedule = new Schedule;
 	schedule.addTask( async () => {
-		const data = stdout.read();
+		const message = sock.read();
+		if( !message ) { return { skip: true }; }
 
-		if( data ) {
-			outBuffer += data;
-		} else if( outBuffer ) {
-			writeln( outBuffer );
-			outBuffer = '';
+		const { name, data } = message;
+		if( !data ) { return { skip: true }; }
+
+		if( !buffers.hasOwnProperty( name ) ) {
+			throw new Error( `Unknown buffer: ${name}` );
 		}
-	}, { interval: 100 } );
+
+		buffers[ name ].append( data );
+	}, { interval: 25 } );
 
 	schedule.addTask( async () => {
-		const data = stderr.read();
-		if( data ) {
-			console.error( data );
-		}
-	}, { interval: 50 } );
+		const buffer = buffers.stdout;
+		if( !( buffer.timeSinceAppend >= 150 ) ) { return { skip: true }; };
+		writeln( buffer.clear() );
+	}, { interval: 10 } );
+
+	schedule.addTask( async () => {
+		const buffer = buffers.stderr;
+		if( !( buffer.timeSinceAppend >= 150 ) ) { return { skip: true }; };
+		console.error( buffer.clear() );
+	}, { interval: 10 } );
 
 	async function command( cmd: string ) {
 		cmd =
@@ -205,7 +243,7 @@ const factory = async (
 			return;
 		}
 		console.log( `cmd> ${JSON.stringify(cmd)}` );
-		stdin.write( cmd + '\n' );
+		sock.write( { name: 'stdin', data: cmd + '\n' } );
 	}
 
 	const handlers = new Map<string, Function>();
