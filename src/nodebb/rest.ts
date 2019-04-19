@@ -1,10 +1,10 @@
-import { userAgent, baseUrl } from '../config';
-import * as rp from 'request-promise';
-import Session from './session';
+import { userAgent, baseUrl } from '~data/config.yaml';
+import rp from 'request-promise';
+import { NodeBBSession } from './session';
 
-export function get( { session: { jar, config }, path, qs = {}, json = false }: { session: Session, path: string, qs?: Object, json?: boolean } ) {
+export function get( { session: { jar, config }, path, qs = {}, json = false }: { session: NodeBBSession, path: string, qs?: Object, json?: boolean } ) {
 	const headers = { 'User-Agent': userAgent };
-	if( config ) {
+	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;
 	}
 	return rp( {
@@ -17,9 +17,9 @@ export function get( { session: { jar, config }, path, qs = {}, json = false }: 
 	} );
 }
 
-export function post( { session: { jar, config }, path, qs = {}, body = {}, form = {}, json = false }: { session: Session, path: string, qs?: Object, body?: Object, form?: Object, json?: boolean } ) {
+export function post( { session: { jar, config }, path, qs = {}, body = {}, form = {}, json = false }: { session: NodeBBSession, path: string, qs?: Object, body?: Object, form?: Object, json?: boolean } ) {
 	const headers = { 'User-Agent': userAgent };
-	if( config ) {
+	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;
 	}
 	return rp( {

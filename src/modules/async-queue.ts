@@ -1,6 +1,6 @@
-import { wait } from '../async-util';
+import { wait } from '~async-util';
 
-import Schedule from '../schedule';
+import { Schedule } from '~schedule';
 
 type FactoryOpts = {
 	queue: Array<() => Promise<void>>;

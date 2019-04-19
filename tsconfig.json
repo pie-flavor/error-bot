@@ -1,9 +1,16 @@
 {
 	"compilerOptions": {
-		"target": "es6",
+		"allowSyntheticDefaultImports": true,
+		"baseUrl": "./src",
+		"lib": [ "esnext" ],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"outDir": "dist",
+		"paths": {
+			"~*": [ "./*" ]
+		},
 		"rootDir": "src",
-		"outDir": "out",
-		"module": "commonjs"
+		"target": "esnext"
 	},
 	"exclude": [
 		"node_modules"

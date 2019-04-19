@@ -7,7 +7,7 @@ const { describe, before, beforeEach, after, afterEach, it } = require( 'mocha' 
 chai.use( require( 'sinon-chai' ) );
 
 describe( 'async-util', () => {
-	const { wait, thenFinally } = require( '../out/async-util' );
+	const { wait, thenFinally } = require( '../dist/async-util' );
 	describe( 'wait', () => {
 		it( 'resolves after a certain number of milliseconds', done => {
 			const waitTime = 25,

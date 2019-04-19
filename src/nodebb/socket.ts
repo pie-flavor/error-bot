@@ -1,14 +1,14 @@
-import { userAgent, baseUrl, connectTimeout, emitTimeout } from '../config';
-import NodeBBSession from './session';
-import { wait } from '../async-util';
-import { emit, waitFor } from '../socket-waiter';
+import { userAgent, baseUrl, connectTimeout, emitTimeout } from '~data/config.yaml';
+import { NodeBBSession } from './session';
+import { wait } from '~async-util';
+import { emit, waitFor } from '~socket-waiter';
 
-import * as io from 'socket.io-client';
+import io from 'socket.io-client';
 
 type ConnectOpts = SocketIOClient.ConnectOpts;
 type SessionOpts = { session: NodeBBSession };
 
-export default class NodeBBSocket {
+export class NodeBBSocket {
 	private constructor( { socket }: { socket: SocketIOClient.Socket } ) {
 		this.socket = socket;
 	}

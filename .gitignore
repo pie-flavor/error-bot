@@ -3,8 +3,9 @@
 !.eslintrc.json
 !.gitignore
 !.travis.yml
+!.babelrc
 coverage/
+dist/
 node_modules/
-out/
-typings/
 *.orig
+*.log

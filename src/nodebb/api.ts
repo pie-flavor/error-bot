@@ -1,20 +1,17 @@
-import NodeBBSession from './session';
+import { NodeBBSession } from './session';
 import { get, post } from './rest';
-import NodeBBSocket from './socket';
+import { NodeBBSocket } from './socket';
 
 type SessionOpts = { session: NodeBBSession };
 type SocketOpts = { socket: NodeBBSocket };
 
 export async function getConfig( { session }: SessionOpts ) {
-	const config =
-		session.config =
+	return session.config =
 		await get( {
 			session,
 			path: '/api/config',
 			json: true
 		} );
-
-	return config;
 }
 
 async function ensureConfig( { session }: SessionOpts ) {

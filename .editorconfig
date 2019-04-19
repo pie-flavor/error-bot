@@ -5,6 +5,6 @@ charset = utf-8
 indent_style = tab
 insert_final_newline = true
 
-[{package.json,*.yml}]
+[*.y{,a}ml]
 indent_size = 2
 indent_style = space

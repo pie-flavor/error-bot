@@ -1,3 +1,5 @@
+/// <reference path="./fsm.d.ts"/>
+
 import { EventEmitter } from 'events';
 
 export class Fsm extends EventEmitter {

@@ -1,5 +1,5 @@
 declare module 'node-ansiparser' {
-	export = class AnsiParser {
+	export default class AnsiParser {
 		constructor( terminal: {
 			inst_p?: ( s ) => void,
 			inst_o?: ( s ) => void,
@@ -13,10 +13,13 @@ declare module 'node-ansiparser' {
 
 		public parse( ansi: string ): void;
 		public reset(): void;
-	};
+	}
 }
 
 declare module 'striptags' {
-	function striptags( str: string ): string;
-	export = striptags;
+	export default function striptags( str: string ): string;
+}
+
+declare const performance: {
+	now(): number;
 }

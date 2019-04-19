@@ -1,14 +1,11 @@
-import * as api from '../nodebb/api';
+import * as api from '~nodebb/api';
 import { EventEmitter } from 'events';
-import striptags = require( 'striptags' );
-import NodeBBSocket from '../nodebb/socket';
+import striptags from 'striptags';
+import { NodeBBSocket } from '~nodebb/socket';
 
-import now = require( 'performance-now' );
+import { Schedule } from '~schedule';
 
-import Schedule from '../schedule';
-
-import * as rp from 'request-promise';
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 
 interface NewPostArgs {
 	posts: {
@@ -130,10 +127,10 @@ class Sock extends EventEmitter {
 		} );
 
 		for( let evt of [ 'open', 'close', 'error', 'message' ] ) {
-			ws.addEventListener( evt, this.emit.bind( this, evt ), false );
+			ws.addEventListener( evt, this.emit.bind( this, evt ) );
 		}
 
-		ws.addEventListener( 'error', console.error.bind( console ), false );
+		ws.addEventListener( 'error', console.error.bind( console ) );
 	}
 
 	public read() {
@@ -152,7 +149,7 @@ class Sock extends EventEmitter {
 
 class Buffer {
 	public append( data: string ) {
-		this.lastAppend = now();
+		this.lastAppend = performance.now();
 		this.buffer += ( data || '' ) + '';
 	}
 
@@ -166,7 +163,7 @@ class Buffer {
 	public get timeSinceAppend() {
 		const { lastAppend } = this;
 		if( lastAppend ) {
-			return Math.max( 0, now() - lastAppend );
+			return Math.max( 0, performance.now() - lastAppend );
 		} else {
 			return null;
 		}

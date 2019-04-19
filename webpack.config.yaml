@@ -1,0 +1,18 @@
+loaders:
+  typescript:
+    loader: awesome-typescript-loader
+    options:
+      babelCore: '@babel/core'
+      use-babel: true
+  yaml:
+    loader: js-yaml-loader
+    options:
+      safe: false
+configuration:
+  node: false
+  target: node
+  resolve:
+    extensions:
+    - .ts
+    - .js
+    - .json

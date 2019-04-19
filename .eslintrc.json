@@ -32,13 +32,14 @@
 			"avoidEscape": true,
 			"allowTemplateLiterals": true
 		} ],
-		"key-spacing": "error",
 		"keyword-spacing": [ "error", {
 			"before": true,
 			"after": false,
 			"overrides": {
 				"case": { "after": true },
 				"const": { "after": true },
+				"else": { "after": true },
+				"finally": { "after": true },
 				"let": { "after": true },
 				"return": { "after": true }
 			}
@@ -64,7 +65,7 @@
 		"no-trailing-spaces": "error",
 		"no-undef-init": "error",
 		"no-unused-expressions": "error",
-		"no-unused-vars": [ "error" ],
+		"no-unused-vars": [ "error", { "args": "none" } ],
 		"no-use-before-define": "error",
 		"no-useless-call": "error",
 		"no-useless-concat": "error",
@@ -77,7 +78,7 @@
 		"no-whitespace-before-property": "error",
 		"object-curly-spacing": [ "error", "always" ],
 		"object-shorthand": [ "error" ],
-		"one-var": "error",
+		"one-var": "off",
 		"one-var-declaration-per-line": "error",
 		"key-spacing": "error",
 		"padded-blocks": [ "error", "never" ],

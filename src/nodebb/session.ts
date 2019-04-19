@@ -1,6 +1,6 @@
 import { jar } from 'request';
 
-export default class NodeBBSession {
+export class NodeBBSession {
 	public jar = jar();
 	public config: NodeBBConfig;
 }

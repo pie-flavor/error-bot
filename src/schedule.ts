@@ -1,4 +1,4 @@
-import now = require( 'performance-now' );
+import now from 'performance-now';
 
 type FnRetval = { delay: number; }|{ done: boolean; }|{ skip: boolean; };
 type FnRetvalAll = { delay?: number; done?: boolean; skip?: boolean; }
@@ -71,7 +71,7 @@ class ScheduledTask {
 	public nextDue: number;
 }
 
-export default class Schedule {
+export class Schedule {
 	public addTask( fn: Fn, opts?: ScheduledTaskOptsPartial ) {
 		this.tasks.push( new ScheduledTask( fn, Object.assign( {}, opts, defaultScheduledTaskOpts ) ) );
 	}
