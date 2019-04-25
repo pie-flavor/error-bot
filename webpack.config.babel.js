@@ -27,7 +27,6 @@ class DebugHooksPlugin {
 		this.options = options;
 		/** @type {Subject<{ pluginName: string, hookName: string, request: import('tsconfig-paths-webpack-plugin/lib/plugin').Request, resolveContext: import('tsconfig-paths-webpack-plugin/lib/plugin').ResolveContext }>} */
 		this.hookCalled = new Subject;
-		
 	}
 
 	/** @param {import('tsconfig-paths-webpack-plugin/lib/plugin').Resolver} resolver */

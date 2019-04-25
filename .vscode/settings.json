@@ -2,5 +2,14 @@
 	"files.exclude": {
 		"dist": true,
 		"node_modules": true
-	}
+	},
+	"eslint.alwaysShowStatus": true,
+	"eslint.enable": true,
+	"eslint.validate": [
+		"javascript",
+		"typescsript",
+		"json"
+	],
+	"eslint.packageManager": "yarn",
+	"eslint.provideLintTask": true
 }

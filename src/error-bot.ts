@@ -19,7 +19,7 @@ if( module.hot ) {
 function loadModules() {
 	loadModuleDependencies();
 	const requireContext = require.context( './modules', true, /(?<!\.d)\.ts$/ );
-	for( let moduleKey of requireContext.keys() ) {
+	for( const moduleKey of requireContext.keys() ) {
 		const moduleName = moduleKey.replace( /^.\/|\.ts$/g, '' );
 		const s = modules.get( moduleName ) || new ReplaySubject<ModuleFactory>( 1 );
 		modules.set( moduleName, s );
@@ -40,7 +40,9 @@ function loadModuleDependencies() {
 		'./rx.ts',
 		'./util.ts',
 		'./nodebb/api.ts'
-	], () => { loadModules(); } );
+	], () => {
+		loadModules();
+	} );
 }
 
 export async function errorBot() {
@@ -86,7 +88,7 @@ export async function errorBot() {
 		// { tid: 20539, url: 'ws://localhost:1339/ws/stdio' ] }
 	];
 
-	for( let { tid, url } of games ) {
+	for( const { tid, url } of games ) {
 		startModule( 'cli-proxy', { tid, url } );
 	}
 

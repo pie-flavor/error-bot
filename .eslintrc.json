@@ -1,7 +1,7 @@
 {
-	"extends": [ "eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier", "prettier/@typescript-eslint" ],
+	"extends": [ "eslint:recommended", "prettier" ],
 	"parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"impliedStrict": true,
@@ -10,15 +10,45 @@
 		"project": "./tsconfig.json"
 	},
 	"plugins": [
-		"@typescript-eslint",
-		"json",
-		"prettier"
+		"json"
 	],
 	"env": {
 		"es6": true,
 		"browser": false,
 		"node": true
 	},
+	"overrides": [ {
+		"files": [ "**/*.ts" ],
+		"parser": "@typescript-eslint/parser",
+		"parserOptions": {
+			"sourceType": "module",
+			"project": "./tsconfig.json"
+		},
+		"plugins": [
+			"prettier",
+			"@typescript-eslint"
+		],
+		"rules": {
+			"@typescript-eslint/ban-types": [ "off", {
+				"Array": null,
+				"Object": "Use {} instead",
+				"String": {
+					"message": "Use string instead",
+					"fixWith": "string"
+				}
+			} ],
+			"no-use-before-define": "off",
+			"no-unused-vars": "off",
+			"@typescript-eslint/explicit-function-return-type": "off",
+			"@typescript-eslint/prefer-interface": "off",
+			"@typescript-eslint/no-explicit-any": "off",
+			"@typescript-eslint/no-namespace": "off",
+			"@typescript-eslint/no-object-literal-type-assertion": "off",
+			"@typescript-eslint/no-parameter-properties": "off",
+			"@typescript-eslint/no-unused-vars": [ "warn", { "args": "none" } ],
+			"@typescript-eslint/no-use-before-define": "warn"	
+		}
+	} ],
 	"rules": {
 		"array-bracket-spacing": [ "error", "always" ],
 		"arrow-spacing": "error",
@@ -74,8 +104,8 @@
 		"no-trailing-spaces": "error",
 		"no-undef-init": "error",
 		"no-unused-expressions": "error",
-		"no-unused-vars": "off",
-		"no-use-before-define": "off",
+		"no-unused-vars": "error",
+		"no-use-before-define": "warn",
 		"no-useless-call": "error",
 		"no-useless-concat": "error",
 		"no-useless-escape": "error",
@@ -112,22 +142,6 @@
 		"template-curly-spacing": "error",
 		"unicode-bom": "error",
 		"wrap-iife": "error",
-		"yield-star-spacing": "error",
-		"@typescript-eslint/ban-types": [ "off", {
-			"Array": null,
-			"Object": "Use {} instead",
-			"String": {
-				"message": "Use string instead",
-				"fixWith": "string"
-			}
-		} ],
-		"@typescript-eslint/explicit-function-return-type": "off",
-		"@typescript-eslint/prefer-interface": "off",
-		"@typescript-eslint/no-explicit-any": "off",
-		"@typescript-eslint/no-namespace": "off",
-		"@typescript-eslint/no-object-literal-type-assertion": "off",
-		"@typescript-eslint/no-parameter-properties": "off",
-		"@typescript-eslint/no-unused-vars": [ "warn", { "args": "none" } ],
-		"@typescript-eslint/no-use-before-define": "warn"
+		"yield-star-spacing": "error"
 	}
 }

@@ -1,6 +1,6 @@
 import * as api from '~nodebb/api';
 import { fromEvent, Subject, throwError, Observable, merge, pipe } from 'rxjs';
-import { takeUntil, take, filter, switchMap, map, share, tap, startWith } from 'rxjs/operators';
+import { takeUntil, take, filter, switchMap, map, share, tap } from 'rxjs/operators';
 
 import WebSocket from 'ws';
 import { escapeMarkdown } from '~util';

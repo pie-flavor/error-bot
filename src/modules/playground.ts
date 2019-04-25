@@ -1,15 +1,14 @@
 import * as api from '~nodebb/api';
-import { parseCommands, tapLog, bufferDebounceTime, windowDebounceTime, rateLimit } from '~rx';
 import { createCanvas } from 'canvas';
 
 import { Decimal as DecimalImpl } from 'decimal.js';
 
-import { takeUntil, take, groupBy, mergeMap, map } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { perfTest } from '~util';
 
-// tslint:disable-next-line
 const Decimal = DecimalImpl.clone().set( {
-	precision: 5, rounding: 4
+	precision: 7, rounding: 7
 } );
 
 const disposed = new Subject<true>();
@@ -96,10 +95,9 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 		const zoomLevel = rand( 1, 3 );
 		const zoomFactor = d1.div( zoomLevel );
 
-		const offsetMax = new Decimal( 0.25 );
 		const windowOffset = {
-			x: zoomLevel.mul( offsetMax.mul( rand( -.5, .5 ) ) ),
-			y: zoomLevel.mul( offsetMax.mul( rand( -.5, .5 ) ) )
+			x: zoomLevel.mul( rand( -.5, .5 ).mul( 0.25 ) ),
+			y: zoomLevel.mul( rand( -.5, .5 ).mul( 0.25 ) )
 		};
 
 		const window = {
@@ -115,18 +113,20 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 		// const cs = Math.cos( theta );
 		// const ss = Math.sin( theta );
 
-		for( let x = 0; x < width; ++x ) {
-			for( let y = 0; y < height; ++y ) {
-				const cartX = new Decimal( x ).div( width );
-				const cartY = d1.sub( new Decimal( y ).div( height ) );
+		perfTest( 'mandelbrot', () => {
+			for( let x = 0; x < width; ++x ) {
+				for( let y = 0; y < height; ++y ) {
+					const cartX = new Decimal( x ).div( width );
+					const cartY = d1.sub( new Decimal( y ).div( height ) );
 
-				const realPart = cartX.mul( windowSize.x ).add( window.min.x );
-				const imaginaryPart = cartY.mul( windowSize.y ).add( window.min.y );
+					const realPart = cartX.mul( windowSize.x ).add( window.min.x );
+					const imaginaryPart = cartY.mul( windowSize.y ).add( window.min.y );
 
-				const colorIndex = mandelbrot( realPart, imaginaryPart );
-				putPixel( x, y, colorIndex );
+					const colorIndex = mandelbrot( realPart, imaginaryPart );
+					putPixel( x, y, colorIndex );
+				}
 			}
-		}
+		} )();
 
 		c2d.putImageData( imageData, 0, 0 );
 
