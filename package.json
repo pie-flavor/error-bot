@@ -85,7 +85,7 @@
 	"husky": {
 		"hooks": {
 			"post-merge": "yarnhook",
-			"post-checkout": "yarnhook",
+			"post-checkout": "yarnhook && git update-index --assume-unchanged ./src/data/auth.yaml",
 			"post-rewrite": "yarnhook"
 		}
 	}
