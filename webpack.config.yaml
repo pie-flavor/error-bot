@@ -3,13 +3,32 @@ loaders:
     loader: awesome-typescript-loader
     options:
       babelCore: '@babel/core'
+      babelOptions:
+        compact: false
+        presets:
+        - - '@babel/preset-env'
+          - corejs: 3
+            mdoules: false
+            targets:
+              node: current
+            useBuiltIns: usage
       use-babel: true
   yaml:
     loader: js-yaml-loader
     options:
       safe: false
 configuration:
-  node: false
+  devtool: source-map
+  node:
+    console: false
+    global: false
+    process: false
+    Buffer: false
+    setImmediate: false
+    __dirname: true
+    __filename: true
+  optimization:
+    noEmitOnErrors: true
   target: node
   resolve:
     extensions:

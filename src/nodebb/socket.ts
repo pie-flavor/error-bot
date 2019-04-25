@@ -1,19 +1,38 @@
-import { userAgent, baseUrl, connectTimeout, emitTimeout } from '~data/config.yaml';
-import { NodeBBSession } from './session';
-import { wait } from '~async-util';
-import { emit, waitFor } from '~socket-waiter';
+import { fromEvent, of, throwError, timer, merge, Observable } from 'rxjs';
+import { take, switchMap, mergeMap, map } from 'rxjs/operators';
 
 import io from 'socket.io-client';
 
+import { userAgent, baseUrl, connectTimeout, emitTimeout, proxy } from '~data/config.yaml';
+import { NodeBBSession } from './session';
+import HttpsProxyAgent from 'https-proxy-agent';
+
 type ConnectOpts = SocketIOClient.ConnectOpts;
 type SessionOpts = { session: NodeBBSession };
+
+type Socket = SocketIOClient.Socket;
+
+function emit( socket: Socket, event: string, ...args: any[] ) {
+	return new Observable( observer => {
+		socket.emit( event, ...args, ( err, ...data ) => {
+			if( err ) {
+				observer.error( err );
+			} else {
+				observer.next( data );
+				observer.complete();
+			}
+		} );
+
+		return () => {};
+	} );
+}
 
 export class NodeBBSocket {
 	private constructor( { socket }: { socket: SocketIOClient.Socket } ) {
 		this.socket = socket;
 	}
 
-	public static connect( { session }: SessionOpts ) {
+	public static async connect( { session }: SessionOpts ) {
 		const socket =
 			io( baseUrl, {
 				rejectUnauthorized: false,
@@ -21,33 +40,40 @@ export class NodeBBSocket {
 				extraHeaders: {
 					'User-Agent': userAgent,
 					'Cookie': session.jar.getCookieString( baseUrl )
-				}
+				},
+				agent: proxy && HttpsProxyAgent(proxy)
 			} as ConnectOpts );
-		socket.emit( 'foo' );
-		return Promise.race<any>( [
-			waitFor( socket, 'connect' ),
-			waitFor( socket, 'connection' ),
-			waitFor( socket, 'error' ),
-			wait( connectTimeout ).then( () => Promise.reject( new Error( 'connect timeout' ) ) )
-		] ).then( () => new NodeBBSocket( { socket } ) );
+
+		await merge(
+			of( 'connect', 'connection' )
+			.pipe( mergeMap( e => fromEvent( socket, e ) ) ),
+			fromEvent( socket, 'error' )
+			.pipe( switchMap( err => throwError( err ) ) ),
+			timer( connectTimeout )
+			.pipe( switchMap( () => throwError( 'connect timeout' ) ) )
+		).pipe( take( 1 ) ).toPromise();
+
+		return new NodeBBSocket( { socket } );
 	}
 
-	public emit( event: string, ...args: any[] ) {
+	public async emit( event: string, ...args: any[] ) {
 		const { socket } = this;
-		return Promise.race<any>( [
+		await merge(
 			emit( socket, event, ...args ),
-			waitFor( socket, 'error' ),
-			wait( emitTimeout ).then( () => Promise.reject( new Error( 'emit timeout' ) ) )
-		] );
+			fromEvent( socket, 'error' )
+			.pipe( switchMap( err => throwError( err ) ) ),
+			timer( emitTimeout )
+			.pipe( switchMap( () => throwError( 'emit timeout' ) ) )
+		).pipe( take( 1 ) ).toPromise();
 	}
 
-	public subscribe( queue: [ string, any[] ][], event: string ) {
+	public getEvent<T extends keyof NodeBB.EventMap>( event: T ): Observable<T & { event: T }> {
 		const { socket } = this;
-
-		socket.on( event, ( ...args ) => {
-			queue.push( [ event, args ] );
-		} );
+		return fromEvent<NodeBB.EventMap[T]>( socket, event )
+		.pipe( map<T, T & { event: T }>( args => ( { event, ...args } ) ) );
 	}
 
 	public socket: SocketIOClient.Socket;
 }
+
+if( module.hot ) module.hot.accept( '../data/config.yaml' );

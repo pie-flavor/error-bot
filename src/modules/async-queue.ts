@@ -1,32 +1,48 @@
-import { wait } from '~async-util';
+import { Subject, interval } from 'rxjs';
+import { exhaustMap, takeUntil, take, filter } from 'rxjs/operators';
+import { filterType } from '~rx';
 
-import { Schedule } from '~schedule';
+const disposed = new Subject<true>();
+if( module.hot ) {
+	module.hot.addDisposeHandler( () => {
+		disposed.next( true );
+		disposed.complete();
+	} );
+} else {
+	disposed.complete();
+}
 
-type FactoryOpts = {
-	queue: Array<() => Promise<void>>;
-	delay: number;
-	attempts?: number;
-	retryDelay: number;
-};
-const factory = async function( { queue, delay, attempts = 1, retryDelay }: FactoryOpts ) {
-	const schedule = new Schedule;
-	schedule.addTask( async () => {
-		const promise = queue.shift();
-		if( !promise ) {
-			return { skip: true };
-		}
-		for( let i = 0; i < attempts; ++i ) {
+type ModuleName = 'async-queue';
+type Params = ModuleParamsMap[ ModuleName ];
+
+export default function( { moduleName, bus, delay, queue, retries }: Params ) {
+	bus.pipe(
+		filterType( 'enqueue_action' ),
+		takeUntil( disposed )
+	).subscribe( message => {
+		queue.push( [ message.action, retries ] );
+	} );
+
+	interval( delay )
+	.pipe(
+		filter( () => queue.length > 0 ),
+		exhaustMap( async () => {
+			const [ fn, retries ] = queue.shift();
 			try {
-				await promise();
-				break;
+				await fn();
 			} catch( ex ) {
 				console.error( ex );
-				await wait( retryDelay );
+				if( retries > 0 ) queue.push( [ fn, retries - 1 ] );
 			}
-		}
-	}, { interval: delay } );
+		} ),
+		takeUntil( disposed )
+	)
+	.subscribe();
 
-	return schedule;
-};
+	disposed.pipe( take( 1 ) )
+	.subscribe( () => {
+		console.log( `${moduleName} unloaded` );
+	} );
+	console.log( `${moduleName} loaded` );
 
-export default factory;
+}

@@ -7,9 +7,15 @@
 		"url": "https://github.com/errorx666/error-bot"
 	},
 	"dependencies": {
+		"canvas": "^2.4.1",
+		"complex-number": "^1.0.1",
+		"complex.js": "^2.0.11",
+		"dayjs": "^1.8.12",
+		"https-proxy-agent": "^2.2.1",
 		"node-ansiparser": "^2.2.0",
 		"performance-now": "^2.1.0",
 		"request-promise": "^4.2.4",
+		"rxjs": "^6.4.0",
 		"sinon-as-promised": "^4.0.3",
 		"socket.io-client": "^2.2.0",
 		"socketio-wildcard": "^2.0.0",
@@ -33,6 +39,7 @@
 		"awesome-typescript-loader": "^5.2.1",
 		"chai": "^4.2.0",
 		"core-js": "3.0.1",
+		"cross-env": "^5.2.0",
 		"del": "^4.1.0",
 		"eslint": "^5.16.0",
 		"eslint-json": "^2.0.0",
@@ -58,24 +65,27 @@
 		"remap-istanbul": "^0.13.0",
 		"sinon": "^7.3.2",
 		"sinon-chai": "^3.3.0",
+		"start-server-webpack-plugin": "^2.2.5",
 		"tsconfig-paths-webpack-plugin": "^3.2.0",
 		"tslint": "^5.16.0",
 		"typescript": "^3.4.4",
 		"webpack": "^4.30.0",
+		"webpack-clean-obsolete-chunks": "^0.4.0",
 		"webpack-cli": "^3.3.0",
+		"webpack-dev-server": "^3.3.1",
 		"webpack-node-externals": "^1.7.2",
 		"yarnhook": "^0.4.0"
 	},
 	"scripts": {
-		"build": "gulp build",
+		"clean": "gulp clean",
+		"build": "webpack",
+		"watch": "cross-env NODE_ENV=development webpack --watch",
 		"start": "node dist",
 		"lint": "gulp lint",
 		"test": "gulp test"
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "yarn lint",
-			"pre-push": "yarn test",
 			"post-merge": "yarnhook",
 			"post-checkout": "yarnhook",
 			"post-rewrite": "yarnhook"

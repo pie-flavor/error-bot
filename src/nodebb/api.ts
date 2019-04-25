@@ -27,6 +27,7 @@ export namespace auth {
 			session,
 			path: '/logout'
 		} );
+		await getConfig( { session } );
 	}
 
 	export async function logIn( { session, username, password }: SessionOpts & { username: string, password: string } ) {
@@ -43,6 +44,28 @@ export namespace auth {
 export namespace posts {
 	export async function reply( { socket, tid, content, toPid = null, lock = false }: SocketOpts & { tid: number, content: string, toPid?: number, lock?: boolean } ) {
 		return await socket.emit( 'posts.reply', { tid, content, toPid, lock } );
+	}
+
+	export async function upload( { session, filename, buffer, contentType, cid }: SessionOpts & { filename: string, buffer: Buffer, contentType: string, cid: number } ) {
+		await ensureConfig( { session } );
+
+		const [ { url } ]: [ { url: string } ] =
+			await post( {
+				session,
+				path: '/api/post/upload',
+				formData: {
+					cid,
+					'files[]': [ {
+						value: buffer,
+						options: {
+							filename,
+							contentType
+						}
+					} ]
+				},
+				json: true
+			} );
+		return url;
 	}
 }
 
@@ -75,3 +98,5 @@ export namespace meta {
 		}
 	}
 }
+
+if( module.hot ) module.hot.accept( './rest.ts' );

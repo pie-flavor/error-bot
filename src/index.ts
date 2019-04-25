@@ -1,10 +1,23 @@
 import 'source-map-support/register';
-import { ErrorBot } from './error-bot';
+import { errorBot } from './error-bot';
+import { Subject } from 'rxjs';
+import { startWith, switchMap } from 'rxjs/operators';
+
+const hmrReload = new Subject();
+if( module.hot ) {
+	module.hot.accept( './error-bot.ts', () => {
+		hmrReload.next( true );
+	} );
+} else {
+	hmrReload.complete();
+}
 
 ( async function() {
 	try {
-		const bot = new ErrorBot;
-		await bot.start();
+		await hmrReload.pipe(
+			startWith( true ),
+			switchMap( () => errorBot() )
+		).toPromise();
 		process.exit( 0 );
 	} catch( ex ) {
 		console.error( ex );

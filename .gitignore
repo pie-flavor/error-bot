@@ -1,9 +1,8 @@
 .*
-!.editorconfig
-!.eslintrc.json
-!.gitignore
+!.*{config,rc}{,.y{,a}ml,.json}
+!.git{ignore,keep}
 !.travis.yml
-!.babelrc
+!.vscode/
 coverage/
 dist/
 node_modules/

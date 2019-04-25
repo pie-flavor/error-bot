@@ -14,4 +14,5 @@ declare module '~data/config.yaml' {
 	export const cycleDelay: number;
 	export const actionDelay: number;
 	export const retryDelay: number;
+	export const proxy: string|undefined;
 }
