@@ -51,10 +51,10 @@ class DebugHooksPlugin {
 	}
 }
 
-const debugResolvePlugin = new DebugHooksPlugin( { pluginName: 'DebugResolveHooksPlugin' } );
+// const debugResolvePlugin = new DebugHooksPlugin( { pluginName: 'DebugResolveHooksPlugin' } );
 
-debugResolvePlugin.hookCalled
-.pipe( filter( ( { request } ) => /async-queue/.test( request.request ) ) )
+// debugResolvePlugin.hookCalled
+// .pipe( filter( ( { request } ) => /async-queue/.test( request.request ) ) )
 // .pipe( filter( ( { hookName, args: [ arg1, arg2 ] } ) => hookName === 'resolved' ) )
 // .pipe(
 // 	filter( ( { args } ) =>
@@ -65,10 +65,10 @@ debugResolvePlugin.hookCalled
 // 		)
 // 	)
 // )
-.subscribe( ( { pluginName, hookName, request, resolveContext } ) => {
-	console.log( { hookName, request, resolveContext } );
-	process.exit( 0 );
-} );
+// .subscribe( ( { pluginName, hookName, request, resolveContext } ) => {
+// 	console.log( { hookName, request, resolveContext } );
+// 	process.exit( 0 );
+// } );
 
 /** @type {webpack.Configuration} */
 module.exports = _.merge( {}, configuration, { mode }, /** @type {webpack.Configuration} */ ( {
@@ -81,6 +81,7 @@ module.exports = _.merge( {}, configuration, { mode }, /** @type {webpack.Config
 	externals: [ webpackNodeExternals( { whitelist: [ hmrPath ] } ) ],
 	module: {
 		rules: [
+			{ test: /\.(?:[jt]s|json)$/, include: [ path.resolve( __dirname, 'src' ) ], enforce: 'pre', use: [ loaders.eslint ] },
 			{ test: /\.ts$/, use: [ loaders.typescript ] },
 			{ test: /\.ya?ml$/, use: [ loaders.yaml ] }
 		]

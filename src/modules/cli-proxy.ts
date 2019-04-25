@@ -88,8 +88,8 @@ class Sock {
 	}
 
 	public write( msg ) {
-		console.log( `send> ${JSON.stringify(msg)}` );
-		this.ws.send( JSON.stringify(msg) );
+		console.log( `send> ${JSON.stringify( msg )}` );
+		this.ws.send( JSON.stringify( msg ) );
 	}
 }
 
@@ -106,7 +106,7 @@ const collectBuffer = () =>
 		filter( s => !!s )
 	);
 
-export default async function ( {
+export default async function( {
 	socket,
 	bus,
 	url,

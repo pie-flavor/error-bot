@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 
 import { userAgent, baseUrl, connectTimeout, emitTimeout, proxy } from '~data/config.yaml';
 import { NodeBBSession } from './session';
-import HttpsProxyAgent from 'https-proxy-agent';
+import httpsProxyAgent from 'https-proxy-agent';
 
 type ConnectOpts = SocketIOClient.ConnectOpts;
 type SessionOpts = { session: NodeBBSession };
@@ -39,9 +39,9 @@ export class NodeBBSocket {
 				transports: [ 'websocket', 'polling' ],
 				extraHeaders: {
 					'User-Agent': userAgent,
-					'Cookie': session.jar.getCookieString( baseUrl )
+					Cookie: session.jar.getCookieString( baseUrl )
 				},
-				agent: proxy && HttpsProxyAgent(proxy)
+				agent: proxy && httpsProxyAgent( proxy )
 			} as ConnectOpts );
 
 		await merge(

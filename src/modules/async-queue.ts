@@ -44,5 +44,4 @@ export default function( { moduleName, bus, delay, queue, retries }: Params ) {
 		console.log( `${moduleName} unloaded` );
 	} );
 	console.log( `${moduleName} loaded` );
-
 }

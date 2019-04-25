@@ -1,15 +1,18 @@
 {
-	"extends": "eslint:recommended",
+	"extends": [ "eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier", "prettier/@typescript-eslint" ],
 	"parserOptions": {
 		"ecmaVersion": 6,
-		"sourceType": "script",
+		"sourceType": "module",
 		"ecmaFeatures": {
 			"impliedStrict": true,
 			"jsx": false
-		}
+		},
+		"project": "./tsconfig.json"
 	},
 	"plugins": [
-		"json"
+		"@typescript-eslint",
+		"json",
+		"prettier"
 	],
 	"env": {
 		"es6": true,
@@ -27,7 +30,7 @@
 		"eol-last": "error",
 		"generator-star-spacing": "error",
 		"id-blacklist": [ "error", "foo", "bar", "baz", "qux", "quux", "that" ],
-		"indent": [ "error", "tab" ],
+		"indent": "off",
 		"quotes": [ "error", "single", {
 			"avoidEscape": true,
 			"allowTemplateLiterals": true
@@ -39,14 +42,20 @@
 				"case": { "after": true },
 				"const": { "after": true },
 				"else": { "after": true },
+				"from": { "after": true },
 				"finally": { "after": true },
 				"let": { "after": true },
-				"return": { "after": true }
+				"import": { "after": true },
+				"return": { "after": true },
+				"try": { "after": true }
 			}
 		} ],
 		"new-cap": "error",
 		"no-array-constructor": "error",
 		"no-catch-shadow": "error",
+		"no-console": "off",
+		"no-empty-pattern": "off",
+		"no-inner-declarations": "off",
 		"no-label-var": "error",
 		"no-lonely-if": "error",
 		"no-multi-spaces": "error",
@@ -65,13 +74,13 @@
 		"no-trailing-spaces": "error",
 		"no-undef-init": "error",
 		"no-unused-expressions": "error",
-		"no-unused-vars": [ "error", { "args": "none" } ],
-		"no-use-before-define": "error",
+		"no-unused-vars": "off",
+		"no-use-before-define": "off",
 		"no-useless-call": "error",
 		"no-useless-concat": "error",
 		"no-useless-escape": "error",
 		"no-useless-computed-key": "error",
-		"no-useless-constructor": "error",
+		"no-useless-constructor": "off",
 		"no-useless-rename": "error",
 		"no-var": "error",
 		"no-with": "error",
@@ -79,10 +88,10 @@
 		"object-curly-spacing": [ "error", "always" ],
 		"object-shorthand": [ "error" ],
 		"one-var": "off",
-		"one-var-declaration-per-line": "error",
+		"one-var-declaration-per-line": "off",
 		"key-spacing": "error",
 		"padded-blocks": [ "error", "never" ],
-		"prefer-const": "error",
+		"prefer-const": "warn",
 		"prefer-rest-params": "error",
 		"quote-props": [ "error", "as-needed" ],
 		"radix": "error",
@@ -91,7 +100,11 @@
 		"semi": "error",
 		"semi-spacing": "error",
 		"space-before-blocks": [ "error", "always" ],
-		"space-before-function-paren": [ "error", "never" ],
+		"space-before-function-paren": [ "error", {
+			"anonymous": "never",
+			"named": "never",
+			"asyncArrow": "always"
+		} ],
 		"space-in-parens": [ "error", "always" ],
 		"space-infix-ops": "error",
 		"space-unary-ops": "error",
@@ -99,6 +112,22 @@
 		"template-curly-spacing": "error",
 		"unicode-bom": "error",
 		"wrap-iife": "error",
-		"yield-star-spacing": "error"
+		"yield-star-spacing": "error",
+		"@typescript-eslint/ban-types": [ "off", {
+			"Array": null,
+			"Object": "Use {} instead",
+			"String": {
+				"message": "Use string instead",
+				"fixWith": "string"
+			}
+		} ],
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/prefer-interface": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-namespace": "off",
+		"@typescript-eslint/no-object-literal-type-assertion": "off",
+		"@typescript-eslint/no-parameter-properties": "off",
+		"@typescript-eslint/no-unused-vars": [ "warn", { "args": "none" } ],
+		"@typescript-eslint/no-use-before-define": "warn"
 	}
 }

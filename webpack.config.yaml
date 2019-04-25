@@ -1,4 +1,7 @@
 loaders:
+  eslint:
+    loader: eslint-loader
+    options: {}
   typescript:
     loader: awesome-typescript-loader
     options:

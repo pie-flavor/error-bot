@@ -59,10 +59,10 @@ export const parseCommands = <T extends 'event:new_notification'>( ...matches: r
 			concatMap( s => s.split( /\n+/g ) ),
 			trimString(),
 			notMatchString( /^@[-_\w\d]+\s+said\s+in\s+/i ),
-			replaceString(/@error_bot/gi, '' ),
+			replaceString( /@error_bot/gi, '' ),
 			trimString(),
-			notMatchString( /^[->@\*]/ ),
-			replaceString( /\[|\]|\(|\)|\*|\>|\`/g, '' ),
+			notMatchString( /^[->@*]/ ),
+			replaceString( /\[|\]|\(|\)|\*|>|`/g, '' ),
 			trimString(),
 			isTruthy(),
 			map( text => ( {
