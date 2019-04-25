@@ -46,7 +46,7 @@ export namespace posts {
 		return await socket.emit( 'posts.reply', { tid, content, toPid, lock } );
 	}
 
-	export async function upload( { session, filename, buffer, contentType, cid }: SessionOpts & { filename: string, buffer: Buffer, contentType: string, cid: number } ) {
+	export async function upload( { session, filename, buffer, contentType, cid }: SessionOpts & { filename: string, buffer: Buffer, contentType: string, cid?: number } ) {
 		await ensureConfig( { session } );
 
 		const [ { url } ]: [ { url: string } ] =
@@ -54,7 +54,7 @@ export namespace posts {
 				session,
 				path: '/api/post/upload',
 				formData: {
-					cid,
+					...( cid ? { cid } : {} ),
 					'files[]': [ {
 						value: buffer,
 						options: {
