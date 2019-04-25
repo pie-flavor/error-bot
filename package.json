@@ -8,8 +8,6 @@
 	},
 	"dependencies": {
 		"canvas": "^2.4.1",
-		"complex-number": "^1.0.1",
-		"complex.js": "^2.0.11",
 		"dayjs": "^1.8.12",
 		"https-proxy-agent": "^2.2.1",
 		"node-ansiparser": "^2.2.0",

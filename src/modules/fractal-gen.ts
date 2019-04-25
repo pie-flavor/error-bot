@@ -1,11 +1,10 @@
 import * as api from '~nodebb/api';
 
-import { parseCommands, tapLog, bufferDebounceTime, windowDebounceTime, rateLimit } from '~rx';
+import { parseCommands, rateLimit } from '~rx';
 
 import { createCanvas } from 'canvas';
 
-import Complex from 'complex.js';
-import { takeUntil, take, groupBy, mergeMap, map } from 'rxjs/operators';
+import { takeUntil, take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 const disposed = new Subject<true>();
@@ -18,13 +17,14 @@ if( module.hot ) {
 	disposed.complete();
 }
 
+type ModuleName = 'fractal-gen';
+type Params = ModuleParamsMap[ ModuleName ];
+
+
 const domain = {
 	min: { x: -2, y: -1.25 },
 	max: { x: .5, y: 1.25 }
 };
-
-type ModuleName = 'fractal-gen';
-type Params = ModuleParamsMap[ ModuleName ];
 
 const MAX_ITER = 255;
 
@@ -56,12 +56,15 @@ function getPalette() {
 	return new Uint8ClampedArray( [ ...imageData.data ] );
 }
 
-function mandelbrot( c: Complex ) {
-	let z = new Complex( 0, 0 );
+function mandelbrot( ca: number, cb: number ) {
+	let za = 0, zb = 0;
 	let n: number;
 	for( n = 0; n < MAX_ITER; ++n ) {
-		z = z.pow( 2 ).add( c );
-		if( z.abs() > 2 ) break;
+		const za2 = za * za - zb * zb;
+		const zb2 = 2 * za * zb;
+		za = za2 + ca;
+		zb = zb2 + cb;
+		if( ( za ** 2 + zb ** 2 ) > 4 ) break;
 	}
 	return n;
 }
@@ -116,7 +119,7 @@ export default async function( {
 					const realPart = window.min.x + ( cartX * windowSize.x );
 					const imaginaryPart = window.min.y + ( cartY * windowSize.y );
 
-					const colorIndex = mandelbrot( new Complex( realPart, imaginaryPart ) );
+					const colorIndex = mandelbrot( realPart, imaginaryPart );
 					putPixel( x, y, colorIndex );
 				}
 			}
