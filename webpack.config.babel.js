@@ -4,11 +4,10 @@ import jsYaml from 'js-yaml';
 import _ from 'lodash';
 import TsconfigPathsWebpackPlugin from 'tsconfig-paths-webpack-plugin';
 import webpackNodeExternals from 'webpack-node-externals';
-import webpack, { HotModuleReplacementPlugin } from 'webpack';
+import { HotModuleReplacementPlugin } from 'webpack';
 import StartServerWebpackPlugin from 'start-server-webpack-plugin';
 import WebpackCleanObsoleteChunksPlugin from 'webpack-clean-obsolete-chunks';
 import { Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 const config = jsYaml.load( fs.readFileSync( path.resolve( __dirname, 'webpack.config.yaml' ), 'utf8' ) );
 
@@ -18,6 +17,7 @@ const mode = 'development';
 
 const hmrPath = 'webpack/hot/poll?100';
 
+/* eslint-disable no-unused-vars */
 class DebugHooksPlugin {
 	constructor( options = {} ) {
 		options = _.merge( {}, {
@@ -68,9 +68,10 @@ class DebugHooksPlugin {
 // 	console.log( { hookName, request, resolveContext } );
 // 	process.exit( 0 );
 // } );
+/* eslint-enable no-unused-vars */
 
-/** @type {webpack.Configuration} */
-module.exports = _.merge( {}, configuration, { mode }, /** @type {webpack.Configuration} */ ( {
+/** @type {import('webpack').Configuration} */
+module.exports = _.merge( {}, configuration, { mode }, /** @type {import('webpack').Configuration} */ ( {
 	entry: {
 		index: [
 			...( mode === 'development' ? [ hmrPath ] : [] ),

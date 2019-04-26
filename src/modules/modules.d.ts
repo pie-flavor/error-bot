@@ -1,8 +1,8 @@
-import { NodeBBSession } from "~nodebb/session";
+import { NodeBBSession } from '~nodebb/session';
 
-import { NodeBBSocket } from "~nodebb/socket";
+import { NodeBBSocket } from '~nodebb/socket';
 
-import { Observer, Observable } from "rxjs";
+import { Observer, Observable } from 'rxjs';
 
 declare global {
 	export interface CommandParserCommand {

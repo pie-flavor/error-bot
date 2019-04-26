@@ -1,6 +1,5 @@
 .*
-!.*{config,rc}{,.y{,a}ml,.json}
-!.git{ignore,keep}
+!.*{config,ignore,keep,rc}{,.y{,a}ml,.js{,on}}
 !.travis.yml
 !.vscode/
 coverage/

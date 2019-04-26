@@ -85,7 +85,7 @@
 		"build": "webpack",
 		"watch": "cross-env NODE_ENV=development webpack --watch",
 		"start": "node dist",
-		"lint": "gulp lint",
+		"lint": "eslint **/*.{js,ts,json}",
 		"test": "gulp test"
 	},
 	"husky": {

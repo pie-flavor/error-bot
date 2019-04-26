@@ -46,14 +46,14 @@
 			"@typescript-eslint/no-object-literal-type-assertion": "off",
 			"@typescript-eslint/no-parameter-properties": "off",
 			"@typescript-eslint/no-unused-vars": [ "warn", { "args": "none" } ],
-			"@typescript-eslint/no-use-before-define": "warn"	
+			"@typescript-eslint/no-use-before-define": "nofunc"
 		}
 	} ],
 	"rules": {
 		"array-bracket-spacing": [ "error", "always" ],
 		"arrow-spacing": "error",
 		"block-spacing": "error",
-		"camelcase": "error",
+		"camelcase": "off",
 		"consistent-this": [ "error", "self" ],
 		"computed-property-spacing": [ "error", "always" ],
 		"comma-spacing": "error",
@@ -104,7 +104,7 @@
 		"no-trailing-spaces": "error",
 		"no-undef-init": "error",
 		"no-unused-expressions": "error",
-		"no-unused-vars": "error",
+		"no-unused-vars": "warn",
 		"no-use-before-define": "warn",
 		"no-useless-call": "error",
 		"no-useless-concat": "error",
@@ -130,11 +130,7 @@
 		"semi": "error",
 		"semi-spacing": "error",
 		"space-before-blocks": [ "error", "always" ],
-		"space-before-function-paren": [ "error", {
-			"anonymous": "never",
-			"named": "never",
-			"asyncArrow": "always"
-		} ],
+		"space-before-function-paren": [ "off" ],
 		"space-in-parens": [ "error", "always" ],
 		"space-infix-ops": "error",
 		"space-unary-ops": "error",

@@ -70,7 +70,7 @@ export class Schedule {
 		if( this.isBusy ) return;
 
 		try {
-			for( let task of this.dueTasks ) {
+			for( const task of this.dueTasks ) {
 				this.isBusy = true;
 				const { skip = false } = await task.run();
 				if( !skip ) return;
