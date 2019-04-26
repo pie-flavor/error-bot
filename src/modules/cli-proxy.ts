@@ -1,11 +1,11 @@
 import * as api from '~nodebb/api';
-import { Subject } from 'rxjs';
+import { Subject, of, timer } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
-import { takeUntil, take, filter, map, groupBy, mergeMap } from 'rxjs/operators';
+import { delay, takeUntil, take, filter, map, groupBy, mergeMap, retry, retryWhen, share, repeatWhen } from 'rxjs/operators';
 
 import WebSocket from 'ws';
 import { escapeMarkdown } from '~util';
-import { bufferDebounceTime, parseCommands, rateLimit } from '~rx';
+import { bufferDebounceTime, parseCommands, rateLimit, tapLog } from '~rx';
 
 const disposed = new Subject<true>();
 if( module.hot ) {
@@ -36,8 +36,22 @@ export default async function( {
 		WebSocketCtor: WebSocket as any
 	} );
 
+	const wsListen =
+		ws.pipe(
+			repeatWhen( ob => {
+				console.log( `Lost connection to ${url}, reconnecting...` );
+				return ob.pipe( delay( 100 ) );
+			} ),
+			retryWhen( err => {
+				console.error( err );
+				return err.pipe( delay( 100 ) );
+			} ),
+			share(),
+			takeUntil( disposed )
+		);
+
 	const buffers =
-	ws.pipe(
+	wsListen.pipe(
 		groupBy( g => g.name ),
 		mergeMap( g =>
 			g.pipe(
@@ -53,8 +67,7 @@ export default async function( {
 				filter( s => !!s ),
 				map( data => ( { name: g.key, data } ) )
 			)
-		),
-		takeUntil( disposed )
+		)
 	);
 
 	buffers
@@ -77,7 +90,9 @@ export default async function( {
 		} );
 	} );
 
-	disposed.pipe( take( 1 ) ).subscribe( () => {
+	disposed
+	.pipe( take( 1 ) )
+	.subscribe( () => {
 		ws.complete();
 	} );
 
@@ -88,12 +103,12 @@ export default async function( {
 			text: s => !/^!/.test( s ) // ignore !commands
 		} ),
 		rateLimit( 10 )
-	)
-	.subscribe( ( { text } ) => {
+	).subscribe( ( { text } ) => {
 		ws.next( { name: 'stdin', data: text + '\n' } );
 	} );
 
-	disposed.pipe( take( 1 ) )
+	disposed
+	.pipe( take( 1 ) )
 	.subscribe( () => {
 		console.log( `${moduleName} unloaded` );
 	} );
