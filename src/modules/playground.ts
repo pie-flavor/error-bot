@@ -1,5 +1,3 @@
-import * as api from '~nodebb/api';
-
 import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
@@ -19,7 +17,6 @@ type Params = ModuleParamsMap[ ModuleName ];
 // this module is for experimentation and testing miscellaneous functionality
 
 export default async function( { moduleName, session, socket, bus, tid }: Params ) {
-
 	disposed.pipe( take( 1 ) )
 	.subscribe( () => {
 		console.log( `${moduleName} unloaded` );
