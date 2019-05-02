@@ -67,10 +67,10 @@ export class NodeBBSocket {
 		).pipe( take( 1 ) ).toPromise();
 	}
 
-	public getEvent<T extends keyof NodeBB.EventMap>( event: T ): Observable<T & { event: T }> {
+	public getEvent<T extends keyof NodeBB.EventMap>( event: T ): Observable<NodeBB.EventMap[T] & { event: T }> {
 		const { socket } = this;
 		return fromEvent<NodeBB.EventMap[T]>( socket, event )
-		.pipe( map<T, T & { event: T }>( args => ( { event, ...args } ) ) );
+		.pipe( map( args => ( { event, ...args } ) ) );
 	}
 
 	public socket: SocketIOClient.Socket;

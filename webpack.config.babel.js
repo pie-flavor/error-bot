@@ -4,7 +4,7 @@ import jsYaml from 'js-yaml';
 import _ from 'lodash';
 import TsconfigPathsWebpackPlugin from 'tsconfig-paths-webpack-plugin';
 import webpackNodeExternals from 'webpack-node-externals';
-import { HotModuleReplacementPlugin } from 'webpack';
+import { HotModuleReplacementPlugin, ProvidePlugin } from 'webpack';
 import StartServerWebpackPlugin from 'start-server-webpack-plugin';
 import WebpackCleanObsoleteChunksPlugin from 'webpack-clean-obsolete-chunks';
 import { Subject } from 'rxjs';
@@ -87,6 +87,9 @@ module.exports = _.merge( {}, configuration, { mode }, /** @type {import('webpac
 		]
 	},
 	plugins: [
+		new ProvidePlugin( {
+			DOMParser: [ 'xmldom', 'DOMParser' ]
+		} ),
 		new WebpackCleanObsoleteChunksPlugin,
 		...( mode === 'development' ? [
 			new HotModuleReplacementPlugin,

@@ -43,6 +43,9 @@ declare global {
 		'playground': ModuleParams<'playground'> & {
 			tid: number;
 		};
+		'xkcd': ModuleParams<'xkcd'> & {
+			tid?: number|number[];
+		};
 	}
 
 	export type ModuleName = keyof ModuleParamsMap;

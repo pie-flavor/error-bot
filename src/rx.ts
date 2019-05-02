@@ -1,6 +1,6 @@
 import { filter, tap, debounceTime, buffer, concatMap, map, window, delay } from 'rxjs/operators';
-import { pipe, Observable, of } from 'rxjs';
-import striptagsImpl from 'striptags';
+import { Observable, of } from 'rxjs';
+import { normalize } from '~util';
 
 function matchesValue<T, K extends keyof T = keyof T>( value: T[K], filterValue: Match<T>[K] ) {
 	if( filterValue === undefined ) return true;
@@ -42,41 +42,37 @@ export const tapLog = <T>( ...prefixes ) =>
 		complete: console.log.bind( 'complete', ...prefixes )
 	} );
 
-export const trimString = () => map<string, string>( s => ( s || '' ).trim() );
 export const replaceString = ( p: string|RegExp, v: string ) => map<string, string>( s => ( s || '' ).replace( p, v ) );
 export const matchString = ( ...p: readonly ( string|RegExp )[] ) => filter<string>( s => p.some( p => s.match( p ) ) );
 export const notMatchString = ( ...p: readonly ( string|RegExp )[] ) => filter<string>( s => !p.some( p => s.match( p ) ) );
-export const isTruthy = <T>() => filter<T>( s => !!s );
-export const striptags = () => map<string, string>( s => striptagsImpl( s || '' ) );
 
-export const parseCommands = <T extends 'event:new_notification'>( ...matches: readonly Match<ReturnType<typeof parseCommands>>[] ) => pipe(
-	filter<NodeBB.Event<T>>( x => x.event === 'event:new_notification' && x.type === 'mention' ),
-	concatMap( ( { datetime, cid, pid, tid, bodyLong, from } ) =>
-		of( bodyLong )
-		.pipe(
-			striptags(),
-			replaceString( /\r/g, '' ),
-			concatMap( s => s.split( /\n+/g ) ),
-			trimString(),
-			notMatchString( /^@[-_\w\d]+\s+said\s+in\s+/i ),
-			replaceString( /@error_bot/gi, '' ),
-			trimString(),
-			notMatchString( /^[->@*]/ ),
-			replaceString( /\[|\]|\(|\)|\*|>|`/g, '' ),
-			trimString(),
-			isTruthy(),
-			map( text => ( {
-				datetime,
-				cid,
-				pid,
-				tid,
-				from,
-				text
-			} ) ),
-			s => ( matches.length > 0 ) ? s.pipe( filterMatches( ...matches ) ) : s
+type parseCommandRetval<T extends NodeBB.NewNotificationEvent> = { text: string } & Pick<T, 'datetime'|'cid'|'pid'|'tid'|'from'>;
+export const parseCommands = <T extends NodeBB.NewNotificationEvent>( ...matches: readonly Match<parseCommandRetval<T>>[] ): { ( s: Observable<T> ): Observable<parseCommandRetval<T>> } =>
+	s =>
+	s.pipe(
+		filter( x => x.type === 'mention' ),
+		concatMap( ( { datetime, cid, pid, tid, bodyLong, from } ) =>
+			of( bodyLong )
+			.pipe(
+				concatMap( s => normalize( s ).split( /\n/g ) ),
+				notMatchString( /^@[-_\w\d]+\s+said\s+in\s+/i ),
+				replaceString( /@error_bot/gi, '' ),
+				notMatchString( /^[->@*]/ ),
+				replaceString( /\[|\]|\(|\)|\*|>|`/g, '' ),
+				map( s => normalize( s ) ),
+				filter( s => !!s ),
+				map( text => ( {
+					datetime,
+					cid,
+					pid,
+					tid,
+					from,
+					text
+				} ) as parseCommandRetval<T> ),
+				s => ( matches.length > 0 ) ? s.pipe( filterMatches( ...matches ) ) : s
+			)
 		)
-	)
-);
+	);
 
 export const filterType = <T extends { type: string }, KTagValue extends T['type']> ( value: KTagValue ) => filter(
 	( obj: T ): obj is Extract<T, { type: KTagValue }> =>
@@ -94,7 +90,9 @@ export const windowDebounceTime = <T>( time: number ) =>
 	) );
 
 export const rateLimit = <T>( time: number ) =>
-	concatMap<T, Observable<T>>( data => of( data ).pipe( delay( time ) ) );
+	concatMap<T, Observable<T>>( data =>
+		of( data ).pipe( delay( time ) )
+	);
 
 	// export function extractQueue<T extends NodeBB.EventName>( queue: NodeBB.EventQueue<T>, filter: Match<NodeBB.EventQueueEntry<T>> ) {
 // 	const index = queue.findIndex( value => matches( value, filter ) );

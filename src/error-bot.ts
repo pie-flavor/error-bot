@@ -78,6 +78,8 @@ export async function errorBot() {
 	startModule( 'async-queue', { delay: 500, retries: 4, queue: [] } );
 	startModule( 'fractal-gen', {} );
 
+
+	startModule( 'xkcd', {} );
 	// Error_Bot in the Works
 	startModule( 'playground', { tid: 14084 } );
 

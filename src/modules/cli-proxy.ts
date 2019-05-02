@@ -1,11 +1,11 @@
 import * as api from '~nodebb/api';
-import { Subject, of, timer } from 'rxjs';
+import { Subject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
-import { delay, takeUntil, take, filter, map, groupBy, mergeMap, retry, retryWhen, share, repeatWhen } from 'rxjs/operators';
+import { delay, takeUntil, take, filter, map, groupBy, mergeMap, retryWhen, share, repeatWhen } from 'rxjs/operators';
 
 import WebSocket from 'ws';
 import { escapeMarkdown } from '~util';
-import { bufferDebounceTime, parseCommands, rateLimit, tapLog } from '~rx';
+import { bufferDebounceTime, parseCommands, rateLimit } from '~rx';
 
 const disposed = new Subject<true>();
 if( module.hot ) {

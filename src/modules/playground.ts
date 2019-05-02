@@ -1,3 +1,6 @@
+/* eslint-disable */
+
+import * as api from '~nodebb/api';
 import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
