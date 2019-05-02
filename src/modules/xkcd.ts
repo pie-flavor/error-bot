@@ -48,7 +48,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			} else {
 				switch( params ) {
 				case 'latest':
-					via = url = `https://xkcd.com/`;
+					url = `https://xkcd.com/`;
 					break;
 				case '':
 				case 'random':
@@ -94,12 +94,14 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 				const [ src, size = '1x' ] = ss.split( /\s+/, 2 );
 				if( src ) srcSet.set( size, src );
 			}
+			const title = document.querySelector( '#ctitle' ).textContent;
 			const imgFullUrl = new URL( srcSet.get( '2x' ) || srcSet.get( '1x' ), url ).href;
 			const content =
 tagHtml`<details>
 	<summary>
 		xkcd said in ${url}
 	</summary>
+	<h1>${title}</h1>
 	<p>
 		<a href="${url}" title="${img.title}" target="_blank">
 			<img src="${imgFullUrl}"/>
