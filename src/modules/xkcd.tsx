@@ -3,11 +3,13 @@ import { take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { takeUntil, concatMap } from 'rxjs/operators';
 import { parseCommands, rateLimit } from '~rx';
-import { tagHtml } from '~util';
 import rp from 'request-promise';
 import { JSDOM } from 'jsdom';
 
 import { proxy } from '~data/config.yaml';
+
+import React, { PureComponent } from 'react';
+import { render } from 'react-jsdom';
 
 const disposed = new Subject<true>();
 if( module.hot ) {
@@ -21,6 +23,47 @@ if( module.hot ) {
 
 type ModuleName = 'xkcd';
 type Params = ModuleParamsMap[ ModuleName ];
+
+interface XkcdProps {
+	name: string;
+	title: string;
+	url: string;
+	via?: string;
+	src: string;
+}
+
+class Xkcd extends PureComponent<XkcdProps> {
+	public constructor( props: XkcdProps ) {
+		super( props );
+	}
+
+	public render() {
+		const { props } = this;
+		return (
+			<details>
+				<summary>
+					xkcd said in {props.url}
+				</summary>
+				<h1>{props.name}</h1>
+				<p>
+					<a href={props.url} target="_blank" rel="noopener noreferrer">
+						<img src={props.src} title={props.title}/>
+					</a>
+					<br/>
+					<abbr title={props.title}>&shy;</abbr>
+				</p>
+				{ props.via
+				? <p>
+					(via{' '}
+						<a href={props.via} target="_blank" rel="noopener noreferrer">
+							{props.via}
+						</a>
+					)
+				</p> : null }
+			</details>
+		);
+	}
+}
 
 export default async function( { moduleName, session, socket, bus, tid }: Params ) {
 	socket.getEvent( 'event:new_notification' )
@@ -48,7 +91,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			} else {
 				switch( params ) {
 				case 'latest':
-					url = `https://xkcd.com/`;
+					via = url = `https://xkcd.com/`;
 					break;
 				case '':
 				case 'random':
@@ -94,23 +137,9 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 				const [ src, size = '1x' ] = ss.split( /\s+/, 2 );
 				if( src ) srcSet.set( size, src );
 			}
-			const title = document.querySelector( '#ctitle' ).textContent;
+			const name = document.querySelector( '#ctitle' ).textContent;
 			const imgFullUrl = new URL( srcSet.get( '2x' ) || srcSet.get( '1x' ), url ).href;
-			const content =
-tagHtml`<details>
-	<summary>
-		xkcd said in ${url}
-	</summary>
-	<h1>${title}</h1>
-	<p>
-		<a href="${url}" title="${img.title}" target="_blank">
-			<img src="${imgFullUrl}"/>
-		</a>
-	</p>` + ( via ? tagHtml`
-	<p>
-		(via <a href="${via}" target="_blank">${via}</a>)
-	</p>` : '' ) + `
-</details>\n`;
+			const content = render( <Xkcd name={name} title={img.title} url={url} src={imgFullUrl} via={via}/> ).outerHTML;
 			bus.next( { type: 'enqueue_action', action: async () => {
 				await api.posts.reply( { socket, tid, content, toPid: pid } );
 			} } );

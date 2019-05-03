@@ -18,9 +18,9 @@ if( module.hot ) {
 
 function loadModules() {
 	loadModuleDependencies();
-	const requireContext = require.context( './modules', true, /(?<!\.d)\.ts$/ );
+	const requireContext = require.context( './modules', true, /(?<!\.d)\.tsx?$/ );
 	for( const moduleKey of requireContext.keys() ) {
-		const moduleName = moduleKey.replace( /^.\/|\.ts$/g, '' );
+		const moduleName = moduleKey.replace( /^.\/|\.tsx?$/g, '' );
 		const s = modules.get( moduleName ) || new ReplaySubject<ModuleFactory>( 1 );
 		modules.set( moduleName, s );
 		s.next( requireContext( moduleKey ).default as ModuleFactory );

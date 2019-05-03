@@ -81,8 +81,8 @@ module.exports = _.merge( {}, configuration, { mode }, /** @type {import('webpac
 	externals: [ webpackNodeExternals( { whitelist: [ hmrPath ] } ) ],
 	module: {
 		rules: [
-			{ test: /\.(?:[jt]s|json)$/, include: [ path.resolve( __dirname, 'src' ) ], enforce: 'pre', use: [ loaders.eslint ] },
-			{ test: /\.ts$/, use: [ loaders.typescript ] },
+			{ test: /\.(?:[jt]sx?|json)$/, include: [ path.resolve( __dirname, 'src' ) ], enforce: 'pre', use: [ loaders.eslint ] },
+			{ test: /\.tsx?$/, use: [ loaders.typescript ] },
 			{ test: /\.ya?ml$/, use: [ loaders.yaml ] }
 		]
 	},

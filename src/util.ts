@@ -84,8 +84,8 @@ export function normalize( str: string, options?: Partial<NormalizeOptions> ) {
 	if( !str ) str = '';
 	if( options.striptags ) str = striptags( str );
 	str = str.replace( /\r\n?/g, '\n' );
-	if( options.collapse ) str = str.replace( /\s+/g, ' ' ).replace( /\n+/g, '\n' );
-	if( options.trim ) str = str.replace( /^\s+|\s+$/gm, '' );
+	if( options.collapse ) str = str.replace( /[^\S\n]+/g, ' ' ).replace( /\n+/g, '\n' );
+	if( options.trim ) str = str.replace( /^[^\S\n]+|[^\S\n]+$/gm, '' );
 
 	return str;
 }

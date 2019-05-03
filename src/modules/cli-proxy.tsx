@@ -4,8 +4,27 @@ import { webSocket } from 'rxjs/webSocket';
 import { delay, takeUntil, take, filter, map, groupBy, mergeMap, retryWhen, share, repeatWhen } from 'rxjs/operators';
 
 import WebSocket from 'ws';
-import { escapeMarkdown } from '~util';
 import { bufferDebounceTime, parseCommands, rateLimit } from '~rx';
+
+import React, { PureComponent } from 'react';
+import { render } from 'react-jsdom';
+
+interface TerminalProps {
+	text: string;
+}
+
+class Terminal extends PureComponent<TerminalProps> {
+	public constructor( props: TerminalProps ) {
+		super( props );
+	}
+
+	public render() {
+		const { props } = this;
+		return (
+			<pre>{props.text}</pre>
+		);
+	}
+}
 
 const disposed = new Subject<true>();
 if( module.hot ) {
@@ -79,7 +98,7 @@ export default async function( {
 		filter( ( { name } ) => name === 'stdout' ),
 		rateLimit( 1000 )
 	).subscribe( ( { data } ) => {
-		const content = escapeMarkdown( data || '' );
+		const content = render( <Terminal text={data}/> ).outerHTML;
 
 		bus.next( {
 			type: 'enqueue_action',

@@ -7,15 +7,20 @@ loaders:
     options:
       babelCore: '@babel/core'
       babelOptions:
+        babelrc: false
         compact: false
         presets:
         - - '@babel/preset-env'
           - corejs: 3
-            mdoules: false
+            modules: false
             targets:
               node: current
             useBuiltIns: usage
-      use-babel: true
+            shippedProposals: true
+        - - '@babel/preset-react'
+          - {}
+      useBabel: true
+      useCache: true
   yaml:
     loader: js-yaml-loader
     options:
@@ -35,6 +40,8 @@ configuration:
   target: node
   resolve:
     extensions:
+    - .tsx
     - .ts
+    - .jsx
     - .js
     - .json

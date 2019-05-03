@@ -1,15 +1,16 @@
 {
-	"extends": [ "eslint:recommended", "prettier" ],
+	"extends": [ "plugin:react/recommended", "eslint:recommended", "prettier" ],
 	"parserOptions": {
 		"ecmaVersion": 8,
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"impliedStrict": true,
-			"jsx": false
+			"jsx": true
 		},
 		"project": "./tsconfig.json"
 	},
 	"plugins": [
+		"react",
 		"json"
 	],
 	"env": {
@@ -18,13 +19,14 @@
 		"node": true
 	},
 	"overrides": [ {
-		"files": [ "**/*.ts" ],
+		"files": [ "**/*.ts", "**/*.tsx" ],
 		"parser": "@typescript-eslint/parser",
 		"parserOptions": {
 			"sourceType": "module",
 			"project": "./tsconfig.json"
 		},
 		"plugins": [
+			"react",
 			"prettier",
 			"@typescript-eslint"
 		],
@@ -49,6 +51,11 @@
 			"@typescript-eslint/no-use-before-define": "nofunc"
 		}
 	} ],
+	"settings": {
+		"react": {
+			"version": "detect"
+		}
+	},
 	"rules": {
 		"array-bracket-spacing": [ "error", "always" ],
 		"arrow-spacing": "error",
