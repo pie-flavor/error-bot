@@ -97,13 +97,14 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 				case 'random':
 					via = url = 'https://c.xkcd.com/random/comic/';
 					break;
-				default: ( async () => { // search
+				default: await ( async () => { // search
 						const searchUrl = new URL( 'https://www.explainxkcd.com/wiki/index.php' );
 						searchUrl.searchParams.set( 'search', params );
 						searchUrl.searchParams.set( 'title', 'Special:Search' );
 						searchUrl.searchParams.set( 'fulltext', '1' );
 						via = searchUrl.href;
-						const { window: { document: searchDoc } } = new JSDOM( await rp( searchUrl.href, { proxy, method: 'GET' } ) );
+						const body = await rp( searchUrl.href, { proxy, method: 'GET' } );
+						const { window: { document: searchDoc } } = new JSDOM( body );
 						const bestResult =
 							Array.from( searchDoc.querySelectorAll( '.mw-search-result-heading a[href]' ) as NodeListOf<HTMLAnchorElement> )
 							.map( a => /\/wiki\/index\.php\/(\d+):/.exec( a.href ) )
