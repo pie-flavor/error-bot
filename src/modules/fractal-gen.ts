@@ -1,6 +1,7 @@
 import * as api from '~nodebb/api';
 
-import { parseCommands, rateLimit } from '~rx';
+import { parseCommands } from '~rx';
+import { rateLimit } from 'rxjs-util';
 
 import { createCanvas } from 'canvas';
 

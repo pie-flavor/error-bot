@@ -7,6 +7,7 @@ import webpackNodeExternals from 'webpack-node-externals';
 import { HotModuleReplacementPlugin, ProvidePlugin } from 'webpack';
 import StartServerWebpackPlugin from 'start-server-webpack-plugin';
 import WebpackCleanObsoleteChunksPlugin from 'webpack-clean-obsolete-chunks';
+import { CheckerPlugin } from 'awesome-typescript-loader';
 import { Subject } from 'rxjs';
 
 const config = jsYaml.load( fs.readFileSync( path.resolve( __dirname, 'webpack.config.yaml' ), 'utf8' ) );
@@ -70,8 +71,17 @@ class DebugHooksPlugin {
 // } );
 /* eslint-enable no-unused-vars */
 
+const esVersions = [ 'next', ...( function *() {
+	for( let year = ( new Date ).getFullYear(); year >= 2015; --year ) {
+		yield String( year );
+	}
+}() ), '6' ];
+const esTypes = [ 'fesm', 'fes', 'esm', 'es', 'jsm', 'js' ];
+
+const mainFields = [ ...esTypes.flatMap( esType => esVersions.map( esVersion => `${esType}${esVersion}` ) ), 'module', 'main' ]
+
 /** @type {import('webpack').Configuration} */
-module.exports = _.merge( {}, configuration, { mode }, /** @type {import('webpack').Configuration} */ ( {
+module.exports = _.merge( {}, configuration, { mode, resolve: { mainFields } }, /** @type {import('webpack').Configuration} */ ( {
 	entry: {
 		index: [
 			...( mode === 'development' ? [ hmrPath ] : [] ),
@@ -93,6 +103,7 @@ module.exports = _.merge( {}, configuration, { mode }, /** @type {import('webpac
 		new WebpackCleanObsoleteChunksPlugin,
 		...( mode === 'development' ? [
 			new HotModuleReplacementPlugin,
+			new CheckerPlugin,
 			new StartServerWebpackPlugin( {
 				args: [],
 				keyboard: true,

@@ -35,6 +35,9 @@ declare global {
 			retries: number;
 			queue: [ () => Eventually, number ][];
 		};
+		'casino': ModuleParams<'casino'> & {
+			tid: number;
+		};
 		'cli-proxy': ModuleParams<'cli-proxy'> & {
 			url: string;
 			tid: number;

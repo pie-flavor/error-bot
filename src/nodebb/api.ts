@@ -99,4 +99,3 @@ export namespace meta {
 	}
 }
 
-if( module.hot ) module.hot.accept( './rest.ts' );

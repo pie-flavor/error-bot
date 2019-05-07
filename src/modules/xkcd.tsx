@@ -1,15 +1,17 @@
 import * as api from '~nodebb/api';
-import { take } from 'rxjs/operators';
+import { take, delay, retryWhen } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { takeUntil, concatMap } from 'rxjs/operators';
-import { parseCommands, rateLimit } from '~rx';
+import { parseCommands } from '~rx';
+import { logError, rateLimit } from 'rxjs-util';
 import rp from 'request-promise';
 import { JSDOM } from 'jsdom';
 
-import { proxy } from '~data/config.yaml';
+import { userAgent } from '~data/config.yaml';
 
 import React, { PureComponent } from 'react';
 import { render } from 'react-jsdom';
+import { getAgent } from '~proxy-agent';
 
 const disposed = new Subject<true>();
 if( module.hot ) {
@@ -42,13 +44,14 @@ class Xkcd extends PureComponent<XkcdProps> {
 		return (
 			<details>
 				<summary>
-					xkcd said in {props.url}
+					xkcd said in{' '}
+					<a href={props.url} target="_blank" rel="noopener noreferrer">
+						{props.url}
+					</a>
 				</summary>
 				<h1>{props.name}</h1>
 				<p>
-					<a href={props.url} target="_blank" rel="noopener noreferrer">
-						<img src={props.src} title={props.title}/>
-					</a>
+					<img src={props.src} title={props.title}/>
 					<br/>
 					<abbr title={props.title}>&shy;</abbr>
 				</p>
@@ -68,7 +71,6 @@ class Xkcd extends PureComponent<XkcdProps> {
 export default async function( { moduleName, session, socket, bus, tid }: Params ) {
 	socket.getEvent( 'event:new_notification' )
 	.pipe(
-		takeUntil( disposed ),
 		parseCommands( { text: /^!xkcd\b/i } ),
 		rateLimit( 10 ),
 		concatMap( async ( {
@@ -76,6 +78,10 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			pid,
 			text
 		} ) => {
+			const timeout = 10;
+			const headers = {
+				'User-Agent': userAgent
+			};
 			const firstSpace = text.search( /\s/ );
 			const params = firstSpace >= 0 ? text.slice( firstSpace + 1 ) : '';
 			let num: number;
@@ -103,7 +109,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 						searchUrl.searchParams.set( 'title', 'Special:Search' );
 						searchUrl.searchParams.set( 'fulltext', '1' );
 						via = searchUrl.href;
-						const body = await rp( searchUrl.href, { proxy, method: 'GET' } );
+						const body = await rp( searchUrl.href, { agent: getAgent( url ), headers, method: 'GET', timeout } );
 						const { window: { document: searchDoc } } = new JSDOM( body );
 						const bestResult =
 							Array.from( searchDoc.querySelectorAll( '.mw-search-result-heading a[href]' ) as NodeListOf<HTMLAnchorElement> )
@@ -117,16 +123,24 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 				}
 			}
 			let body: string;
-			for( let i = 0; i < 3; ++i ) {
-				const response = await rp( url, { followRedirect: false, proxy, method: 'GET', resolveWithFullResponse: true, simple: false } );
-				const location = response.headers.location;
-				if( location ) {
-					url = location;
-					continue;
+			try {
+				for( let i = 0; i < 3; ++i ) {
+					const response = await rp( url, { followRedirect: false, agent: getAgent( url ), headers, method: 'GET', resolveWithFullResponse: true, simple: false, timeout } );
+					const location = response.headers.location;
+					if( location ) {
+						url = location;
+						continue;
+					}
+					if( response.statusCode !== 200 ) throw new Error( `Failed to load ${url}` );
+					body = response.body;
+					break;
 				}
-				if( response.statusCode !== 200 ) throw new Error( `Failed to load ${url}` );
-				body = response.body;
-				break;
+			} catch( ex ) {
+				console.error( ex );
+				bus.next( { type: 'enqueue_action', action: async () => {
+					await api.posts.reply( { socket, tid, content: ex.toString(), toPid: pid } );
+				} } );
+				return;
 			}
 			const { window: { document } } = new JSDOM( body );
 			const img = document.querySelector( '#comic img' ) as HTMLImageElement;
@@ -144,8 +158,11 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			bus.next( { type: 'enqueue_action', action: async () => {
 				await api.posts.reply( { socket, tid, content, toPid: pid } );
 			} } );
-	} ) )
-	.subscribe();
+		} ),
+		logError( moduleName ),
+		retryWhen( err => err.pipe( delay( 100 ) ) ),
+		takeUntil( disposed )
+	).subscribe();
 
 	disposed.pipe( take( 1 ) )
 	.subscribe( () => {

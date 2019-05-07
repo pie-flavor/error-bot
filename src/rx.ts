@@ -1,5 +1,6 @@
-import { filter, tap, debounceTime, buffer, concatMap, map, window, delay } from 'rxjs/operators';
+import { filter, concatMap, map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
+import { filterMatch, filterFalsy } from 'rxjs-util';
 import { normalize } from '~util';
 
 function matchesValue<T, K extends keyof T = keyof T>( value: T[K], filterValue: Match<T>[K] ) {
@@ -35,16 +36,7 @@ export const filterMatches = <T extends object, U extends Match<T> = Match<T>>(
 ) =>
 	filter<T>( obj => matchesSome<T, U>( obj, ...filters ) );
 
-export const tapLog = <T>( ...prefixes ) =>
-	tap<T>( {
-		next: console.log.bind( 'next', ...prefixes ),
-		error: console.log.bind( 'error', ...prefixes ),
-		complete: console.log.bind( 'complete', ...prefixes )
-	} );
-
 export const replaceString = ( p: string|RegExp, v: string ) => map<string, string>( s => ( s || '' ).replace( p, v ) );
-export const matchString = ( ...p: readonly ( string|RegExp )[] ) => filter<string>( s => p.some( p => s.match( p ) ) );
-export const notMatchString = ( ...p: readonly ( string|RegExp )[] ) => filter<string>( s => !p.some( p => s.match( p ) ) );
 
 type parseCommandRetval<T extends NodeBB.NewNotificationEvent> = { text: string } & Pick<T, 'datetime'|'cid'|'pid'|'tid'|'from'>;
 export const parseCommands = <T extends NodeBB.NewNotificationEvent>( ...matches: readonly Match<parseCommandRetval<T>>[] ): { ( s: Observable<T> ): Observable<parseCommandRetval<T>> } =>
@@ -55,12 +47,12 @@ export const parseCommands = <T extends NodeBB.NewNotificationEvent>( ...matches
 			of( bodyLong )
 			.pipe(
 				concatMap( s => normalize( s ).split( /\n/g ) ),
-				notMatchString( /^@[-_\w\d]+\s+said\s+in\s+/i ),
+				filterMatch( /^@[-_\w\d]+\s+said\s+in\s+/i, true ),
 				replaceString( /@error_bot/gi, '' ),
-				notMatchString( /^[->@*]/ ),
+				filterMatch( /^[->@*]/, true ),
 				replaceString( /\[|\]|\(|\)|\*|>|`/g, '' ),
 				map( s => normalize( s ) ),
-				filter( s => !!s ),
+				filterFalsy(),
 				map( text => ( {
 					datetime,
 					cid,
@@ -79,23 +71,3 @@ export const filterType = <T extends { type: string }, KTagValue extends T['type
 		obj.type === value
 );
 
-export const bufferDebounceTime = <T>( time: number ) =>
-	( o: Observable<T> ) => o.pipe( buffer(
-		o.pipe( debounceTime( time ) )
-	) );
-
-export const windowDebounceTime = <T>( time: number ) =>
-	( o: Observable<T> ) => o.pipe( window(
-		o.pipe( debounceTime( time ) )
-	) );
-
-export const rateLimit = <T>( time: number ) =>
-	concatMap<T, Observable<T>>( data =>
-		of( data ).pipe( delay( time ) )
-	);
-
-	// export function extractQueue<T extends NodeBB.EventName>( queue: NodeBB.EventQueue<T>, filter: Match<NodeBB.EventQueueEntry<T>> ) {
-// 	const index = queue.findIndex( value => matches( value, filter ) );
-// 	if( index < 0 ) return null;
-// 	return queue.splice( index, 1 )[ 0 ] as NodeBB.EventQueueEntry<T>;
-// }

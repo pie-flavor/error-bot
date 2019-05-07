@@ -3,9 +3,9 @@ import { take, switchMap, mergeMap, map } from 'rxjs/operators';
 
 import io from 'socket.io-client';
 
-import { userAgent, baseUrl, connectTimeout, emitTimeout, proxy } from '~data/config.yaml';
+import { userAgent, baseUrl, connectTimeout, emitTimeout } from '~data/config.yaml';
 import { NodeBBSession } from './session';
-import httpsProxyAgent from 'https-proxy-agent';
+import { getAgent } from '~proxy-agent';
 
 type ConnectOpts = SocketIOClient.ConnectOpts;
 type SessionOpts = { session: NodeBBSession };
@@ -41,7 +41,7 @@ export class NodeBBSocket {
 					'User-Agent': userAgent,
 					Cookie: session.jar.getCookieString( baseUrl )
 				},
-				agent: proxy && httpsProxyAgent( proxy )
+				agent: getAgent( baseUrl )
 			} as ConnectOpts );
 
 		await merge(
@@ -75,5 +75,3 @@ export class NodeBBSocket {
 
 	public socket: SocketIOClient.Socket;
 }
-
-if( module.hot ) module.hot.accept( '../data/config.yaml' );

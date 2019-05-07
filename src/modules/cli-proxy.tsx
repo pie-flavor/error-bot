@@ -2,9 +2,11 @@ import * as api from '~nodebb/api';
 import { Subject } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { delay, takeUntil, take, filter, map, groupBy, mergeMap, retryWhen, share, repeatWhen } from 'rxjs/operators';
-
 import WebSocket from 'ws';
-import { bufferDebounceTime, parseCommands, rateLimit } from '~rx';
+import { getAgent } from '~proxy-agent';
+
+import { parseCommands } from '~rx';
+import { bufferDebounceTime, rateLimit } from 'rxjs-util';
 
 import React, { PureComponent } from 'react';
 import { render } from 'react-jsdom';
@@ -43,6 +45,13 @@ type BufferMessage = {
 	data: string;
 };
 
+
+const WebSocketCtor = function WebSocketCtor( url: string, protocols?: string|string[] ) {
+	return new WebSocket( url, protocols, {
+		agent: getAgent( url )
+	} );
+} as any;
+
 export default async function( {
 	socket,
 	bus,
@@ -52,7 +61,7 @@ export default async function( {
 }: Params ) {
 	const ws = webSocket<BufferMessage>( {
 		url,
-		WebSocketCtor: WebSocket as any
+		WebSocketCtor
 	} );
 
 	const wsListen =

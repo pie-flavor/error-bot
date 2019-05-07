@@ -2,16 +2,17 @@ import { userAgent, baseUrl } from '~data/config.yaml';
 import rp from 'request-promise';
 import { NodeBBSession } from './session';
 
-import { proxy } from '~data/config.yaml';
+import { getAgent } from '~proxy-agent';
 
 export function get( { session: { jar, config }, path, qs, json = false }: { session: NodeBBSession, path: string, qs?: Object, json?: boolean } ) {
 	const headers = { 'User-Agent': userAgent };
 	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;
 	}
+	const uri = `${baseUrl}${path}`;
 	return rp( {
-		proxy,
-		uri: `${baseUrl}${path}`,
+		agent: getAgent( uri ),
+		uri,
 		method: 'GET',
 		jar,
 		headers,
@@ -25,9 +26,10 @@ export function post( { session: { jar, config }, path, qs, body, form, formData
 	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;
 	}
+	const uri = `${baseUrl}${path}`;
 	return rp( {
-		proxy,
-		uri: `${baseUrl}${path}`,
+		agent: getAgent( uri ),
+		uri,
 		method: 'POST',
 		jar,
 		headers,
@@ -38,6 +40,3 @@ export function post( { session: { jar, config }, path, qs, body, form, formData
 		json
 	} );
 }
-
-
-if( module.hot ) module.hot.accept( '../data/config.yaml' );

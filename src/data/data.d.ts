@@ -16,3 +16,9 @@ declare module '~data/config.yaml' {
 	export const retryDelay: number;
 	export const proxy: string|undefined;
 }
+
+declare module '~data/mongodb.yaml' {
+	import { MongoClientOptions } from 'mongodb';
+	export const url: string;
+	export const clientOptions: MongoClientOptions;
+}

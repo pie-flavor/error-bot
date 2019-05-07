@@ -17,7 +17,6 @@ if( module.hot ) {
 }
 
 function loadModules() {
-	loadModuleDependencies();
 	const requireContext = require.context( './modules', true, /(?<!\.d)\.tsx?$/ );
 	for( const moduleKey of requireContext.keys() ) {
 		const moduleName = moduleKey.replace( /^.\/|\.tsx?$/g, '' );
@@ -32,18 +31,6 @@ function loadModules() {
 }
 
 loadModules();
-
-function loadModuleDependencies() {
-	if( module.hot ) module.hot.accept( [
-		'./data/config.yaml',
-		'./random.ts',
-		'./rx.ts',
-		'./util.ts',
-		'./nodebb/api.ts'
-	], () => {
-		loadModules();
-	} );
-}
 
 export async function errorBot() {
 	const session = new NodeBBSession;
@@ -75,23 +62,41 @@ export async function errorBot() {
 		} );
 	}
 
-	startModule( 'async-queue', { delay: 500, retries: 4, queue: [] } );
+	startModule( 'async-queue', { delay: 1000, retries: 5, queue: [] } );
 	startModule( 'fractal-gen', {} );
 
 
 	startModule( 'xkcd', {} );
+
+	startModule( 'casino', { tid: 14084 } );
 	// Error_Bot in the Works
 	startModule( 'playground', { tid: 14084 } );
 
 	const games = [
-		// TDWTF Plays Zork I
-		{ tid: 20461, url: 'ws://localhost:1338/ws/stdio' }
+		// TDWTF Plays Beyond Zork
+		{ tid: 26508, url: 'ws://localhost:1338/ws/stdio' },
+		// TDWTF Plays Enchanter
+		{ tid: 26509, url: 'ws://localhost:1339/ws/stdio' },
+		// TDWTF TDWTF Plays The Hitchhiker's Guide to the Galaxy
+		{ tid: 20552, url: 'ws://localhost:1340/ws/stdio' },
 		// TDWTF Plays Sorcerer
-		// { tid: 20539, url: 'ws://localhost:1339/ws/stdio' ] }
+		{ tid: 20539, url: 'ws://localhost:1341/ws/stdio' },
+		// TDWTF Plays Spellbreaker
+		{ tid: 26510, url: 'ws://localhost:1342/ws/stdio' },
+		// TDWTF Plays Zork I
+		{ tid: 20461, url: 'ws://localhost:1343/ws/stdio' },
+		// TDWTF Plays Zork II
+		{ tid: 26506, url: 'ws://localhost:1344/ws/stdio' },
+		// TDWTF Plays Zork III
+		{ tid: 26507, url: 'ws://localhost:1345/ws/stdio' },
+		// TDWTF Plays Zork: The Undiscovered Underground
+		{ tid: 26511, url: 'ws://localhost:1346/ws/stdio' }
 	];
 
 	for( const { tid, url } of games ) {
-		startModule( 'cli-proxy', { tid, url } );
+		if( tid ) {
+			startModule( 'cli-proxy', { tid, url } );
+		}
 	}
 
 	console.log( 'Ready' );
