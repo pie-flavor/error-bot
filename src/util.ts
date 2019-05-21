@@ -30,6 +30,8 @@ export function escapeHtml( str: string ) {
 
 export const tagHtml = tagImpl( escapeHtml );
 
+export const tagUrl = tagImpl( encodeURIComponent );
+
 const formatMsTable = [
 	[ 1000, 'ms' ],
 	[ 60, 's' ],

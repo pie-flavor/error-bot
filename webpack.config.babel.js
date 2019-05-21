@@ -78,7 +78,7 @@ const esVersions = [ 'next', ...( function *() {
 }() ), '6' ];
 const esTypes = [ 'fesm', 'fes', 'esm', 'es', 'jsm', 'js' ];
 
-const mainFields = [ ...esTypes.flatMap( esType => esVersions.map( esVersion => `${esType}${esVersion}` ) ), 'module', 'main' ]
+const mainFields = [ ...esTypes.flatMap( esType => esVersions.map( esVersion => `${esType}${esVersion}` ) ), 'module', 'main' ];
 
 /** @type {import('webpack').Configuration} */
 module.exports = _.merge( {}, configuration, { mode, resolve: { mainFields } }, /** @type {import('webpack').Configuration} */ ( {
@@ -91,7 +91,7 @@ module.exports = _.merge( {}, configuration, { mode, resolve: { mainFields } }, 
 	externals: [ webpackNodeExternals( { whitelist: [ hmrPath ] } ) ],
 	module: {
 		rules: [
-			{ test: /\.(?:[jt]sx?|json)$/, include: [ path.resolve( __dirname, 'src' ) ], enforce: 'pre', use: [ loaders.eslint ] },
+			// { test: /\.(?:[jt]sx?|json)$/, include: [ path.resolve( __dirname, 'src' ) ], enforce: 'pre', use: [ loaders.eslint ] },
 			{ test: /\.tsx?$/, use: [ loaders.typescript ] },
 			{ test: /\.ya?ml$/, use: [ loaders.yaml ] }
 		]

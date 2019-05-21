@@ -11,3 +11,11 @@ declare namespace __WebpackModuleApi {
 		id: string;
 	}
 }
+
+declare interface ObjectConstructor {
+	fromEntries<T extends keyof any, K>( entries: [ T, K ][] ): Record<T, K>;
+}
+
+declare interface URLSearchParams {
+	entries(): [ string, string ][];
+}

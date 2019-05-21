@@ -78,7 +78,6 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			pid,
 			text
 		} ) => {
-			const timeout = 10;
 			const headers = {
 				'User-Agent': userAgent
 			};
@@ -109,7 +108,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 						searchUrl.searchParams.set( 'title', 'Special:Search' );
 						searchUrl.searchParams.set( 'fulltext', '1' );
 						via = searchUrl.href;
-						const body = await rp( searchUrl.href, { agent: getAgent( url ), headers, method: 'GET', timeout } );
+						const body = await rp( searchUrl.href, { agent: getAgent( url ), headers, method: 'GET' } );
 						const { window: { document: searchDoc } } = new JSDOM( body );
 						const bestResult =
 							Array.from( searchDoc.querySelectorAll( '.mw-search-result-heading a[href]' ) as NodeListOf<HTMLAnchorElement> )
@@ -125,7 +124,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 			let body: string;
 			try {
 				for( let i = 0; i < 3; ++i ) {
-					const response = await rp( url, { followRedirect: false, agent: getAgent( url ), headers, method: 'GET', resolveWithFullResponse: true, simple: false, timeout } );
+					const response = await rp( url, { followRedirect: false, agent: getAgent( url ), headers, method: 'GET', resolveWithFullResponse: true, simple: false } );
 					const location = response.headers.location;
 					if( location ) {
 						url = location;
