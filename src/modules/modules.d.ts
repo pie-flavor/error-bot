@@ -43,6 +43,12 @@ declare global {
 			tid: number;
 		};
 		'fractal-gen': ModuleParams<'fractal-gen'> & {};
+		'scryfall': ModuleParams<'scryfall'> & {
+			tid?: number|number[];
+		};
+		'secret': ModuleParams<'secret'> & {
+			tid: number;
+		};
 		'playground': ModuleParams<'playground'> & {
 			tid: number;
 		};

@@ -48,7 +48,7 @@ export class NodeBBSocket {
 	}
 
 	public static async connect( { session }: SessionOpts ) {
-		const { config } = session;
+		const config = session.config.value;
 		const socket =
 			io( baseUrl, {
 				rejectUnauthorized: false,

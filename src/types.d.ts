@@ -11,7 +11,6 @@ declare type Match<T> = { [ K in keyof T ]?:
 	: T[K] extends Array<any> ? T[K]|Predicate<T[K]>
 	: T[K]|Predicate<T[K]>|readonly T[K][]
 };
-declare type Omit<T, U> = Pick<T, Exclude<keyof T, U>>;
 declare type FalsyValue = false|0|''|void;
 
 declare type PickOnly<TType, TKey extends keyof TType> =

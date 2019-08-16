@@ -1,4 +1,7 @@
 loaders:
+  debug:
+    loader: debug-loader
+    options: {}
   eslint:
     loader: eslint-loader
     options: {}

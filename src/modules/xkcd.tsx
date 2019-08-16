@@ -13,6 +13,8 @@ import React, { PureComponent } from 'react';
 import { render } from 'react-jsdom';
 import { getAgent } from '~proxy-agent';
 
+import { URL } from 'url';
+
 const disposed = new Subject<true>();
 if( module.hot ) {
 	module.hot.addDisposeHandler( () => {
@@ -108,7 +110,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 						searchUrl.searchParams.set( 'title', 'Special:Search' );
 						searchUrl.searchParams.set( 'fulltext', '1' );
 						via = searchUrl.href;
-						const body = await rp( searchUrl.href, { agent: getAgent( url ), headers, method: 'GET' } );
+						const body = await rp( searchUrl.href, { agent: getAgent( searchUrl ), headers, method: 'GET' } );
 						const { window: { document: searchDoc } } = new JSDOM( body );
 						const bestResult =
 							Array.from( searchDoc.querySelectorAll( '.mw-search-result-heading a[href]' ) as NodeListOf<HTMLAnchorElement> )

@@ -1,6 +1,7 @@
 import { proxy } from '~data/config.yaml';
 import HttpProxyAgent from 'http-proxy-agent';
 import HttpsProxyAgent from 'https-proxy-agent';
+
 import { URL } from 'url';
 
 export function getAgent( url: string|URL ) {

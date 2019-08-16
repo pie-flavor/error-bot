@@ -1,4 +1,6 @@
 declare namespace NodeBB {
+	export type NumberBool = 0|1;
+
 	export type UserStatus = 'online'|'offline'|'dnd'|'away';
 
 	export interface MessageData {
@@ -17,8 +19,22 @@ declare namespace NodeBB {
 
 	interface ChatReceiveEvent {
 		readonly roomId: string;
-		readonly fromUid: number;
-		readonly message: MessageData;
+		readonly fromuid: number;
+		readonly message: {
+			readonly content: MessageData;
+			readonly deleted: boolean;
+			readonly edited: number;
+			readonly timestamp: number;
+			readonly timestampISO: string;
+			readonly editedISO: string;
+			readonly messageId: number;
+			readonly fromUser: Pick<UserData, 'uid'|'banned'|'status'|'picture'|'username'|'userslug'|'icon:text'|'icon:bgColor'|'deleted'>;
+			readonly self: number;
+			readonly newSet: boolean;
+			readonly cleanedContent: string;
+			readonly mid: number;
+		};
+		readonly uids: readonly number[];
 		readonly self: number;
 	}
 
@@ -97,6 +113,23 @@ declare namespace NodeBB {
 		readonly labelColor: string;
 		readonly icon: string;
 		readonly userTitle: string;
+		readonly hidden: number;
+		readonly system: number;
+		readonly deleted: number;
+		readonly private: number;
+		readonly ownerUid: number;
+		readonly createTime: number;
+		readonly description: string;
+		readonly memberCount: number;
+		readonly userTitleEnabled: number;
+		readonly disableJoinRequests: number;
+		readonly nameEncoded: string;
+		readonly displayName: string;
+		readonly createTimeISO: string;
+		readonly 'cover:thumb:url': string;
+		readonly 'cover:url': string;
+		readonly 'cover:position': string;
+		
 	}
 
 	export interface TopicData {
@@ -207,10 +240,11 @@ declare namespace NodeBB {
 		readonly lastonlineISO: string;
 		readonly banned_until: number;
 		readonly banned_until_readable: string;
-		readonly selectedGroups: readonly GroupData[];
+		readonly selectedGroups: readonly Pick<GroupData, 'name'|'slug'|'labelColor'|'icon'|'userTitle'>[];
 		readonly custom_profile_info: readonly unknown[];
 		readonly editHistoryVisible: boolean;
 		readonly fullname?: string;
+		readonly deleted: boolean;
 	}
 
 	export interface AlertEvent {
@@ -284,13 +318,13 @@ declare namespace NodeBB {
 	}
 
 	export interface EventMap {
+		'checkSession': number;
 		'event:alert': AlertEvent;
 		'event:banned': BannedEvent;
 		'event:bookmarked': {};
 		'event:chats.edit': {};
 		'event:chats.markedAsRead': {};
 		'event:chats.receive': ChatReceiveEvent;
-		'event:checkSession': number;
 		'event:livereload': {};
 		'event:notifications.updateCount': number;
 		'event:new_notification': NewNotificationEvent;

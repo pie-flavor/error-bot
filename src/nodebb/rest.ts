@@ -8,7 +8,9 @@ import { getAgent } from '~proxy-agent';
 
 type QueryString = object|string;
 
-export function get( { session: { jar, config }, path, qs, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, json?: boolean } ) {
+export function get( { session, path, qs, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, json?: boolean } ) {
+	const { jar } = session;
+	const config = session.config.value;
 	const headers = { 'User-Agent': userAgent };
 	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;
@@ -29,7 +31,10 @@ export function get( { session: { jar, config }, path, qs, json = false }: { ses
 	} );
 }
 
-export function post( { session: { jar, config }, path, qs, body, form, formData, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, body?: string|Buffer, form?: Object, formData?: Object, json?: boolean } ) {
+export function post( { session, path, qs, body, form, formData, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, body?: string|Buffer, form?: Object, formData?: Object, json?: boolean } ) {
+	const { jar } = session;
+	const config = session.config.value;
+
 	const headers = { 'User-Agent': userAgent };
 	if( config && config.csrf_token ) {
 		headers[ 'X-CSRF-Token' ] = config.csrf_token;

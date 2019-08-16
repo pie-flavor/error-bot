@@ -11,5 +11,6 @@
 		"json"
 	],
 	"eslint.packageManager": "yarn",
-	"eslint.provideLintTask": true
+	"eslint.provideLintTask": true,
+	"typescript.preferences.quoteStyle": "single"
 }

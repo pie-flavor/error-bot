@@ -1,6 +1,7 @@
 import { jar } from 'request';
+import { BehaviorSubject } from 'rxjs';
 
 export class NodeBBSession {
-	public jar = jar();
-	public config: NodeBBConfig;
+	public readonly jar = jar();
+	public readonly config = new BehaviorSubject<NodeBBConfig>( null );
 }

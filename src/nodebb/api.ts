@@ -9,16 +9,17 @@ type SocketOpts = { socket: NodeBBSocket };
 const notImplemented = () => { throw new Error( 'Not implemented' ); };
 
 export async function getConfig( { session }: SessionOpts ) {
-	return session.config =
-		await rest.get( {
-			session,
-			path: '/api/config',
-			json: true
-		} );
+	const config = await rest.get( {
+		session,
+		path: '/api/config',
+		json: true
+	} );
+	session.config.next( config );
+	return config;
 }
 
 async function ensureConfig( { session }: SessionOpts ) {
-	if( !session.config ) {
+	if( session.config.value == null ) {
 		await getConfig( { session } );
 	}
 }
@@ -52,6 +53,16 @@ export function getRoomId( opts: any ): string {
 	if( opts.admin ) return 'admin';
 	if( opts.categories ) return 'categories';
 	throw new Error( 'Could not get room ID' );
+}
+
+export async function compose( { session, content }: SessionOpts & { readonly content: string; readonly cid: number; readonly title: string; tags: readonly string[]; readonly thumb: string; } );
+export async function compose( { session, content }: SessionOpts & { readonly content: string; readonly tid: number; } );
+export async function compose( { session, ...form }: SessionOpts & { readonly content: string; } & ( { readonly cid: number; readonly title: string; tags: readonly string[]; readonly thumb: string; } | { readonly tid: number; } ) ) {
+	await rest.post( {
+		session,
+		path: '/compose',
+		form
+	} );
 }
 
 export namespace auth {
@@ -110,7 +121,7 @@ export namespace admin {
 		export function getAll( { socket }: SocketOpts ) {
 			return socket.emit( 'admin.categories.getAll' );
 		}
-	
+
 		export function getPrivilegeSettings( { socket, cid }: SocketOpts & { cid: number; } ) {
 			return socket.emit( 'admin.categories.getPrivilegeSettings', cid );
 		}
@@ -324,6 +335,16 @@ export namespace flags {
 }
 
 export namespace groups {
+	export async function getAll( { session, sort }: SessionOpts & { readonly sort?: 'alpha'|'count'|'date' } ) {
+		await ensureConfig( { session } );
+		return await rest.get( {
+			session,
+			path: '/api/groups',
+			qs: { sort },
+			json: true
+		} );
+	}
+
 	export function accept( { socket, toUid, groupName }: SocketOpts & { toUid: number; groupName: string; } ) {
 		return socket.emit( 'groups.accept', { toUid, groupName } );
 	}
@@ -382,7 +403,7 @@ export namespace groups {
 		return socket.emit( 'groups.rejectInvite', { toUid, groupName } );
 	}
 
-	export function search( { socket, query, options }: SocketOpts & { query: string; options?: { readonly sort: string; }; } ) {
+	export function search( { socket, query, options }: SocketOpts & { query?: string; options?: { readonly sort: 'alpha'|'count'|'date'; }; } ): Promise<readonly NodeBB.GroupData[]> {
 		return socket.emit( 'groups.search', { query, options } );
 	}
 }
@@ -664,7 +685,7 @@ export namespace user {
 	export function unbanUsers( { socket, uids }: SocketOpts & { uids: readonly number[]; } ) {
 		return socket.emit( 'user.unbanUsers', uids );
 	}
-	
+
 	export function changePassword( { socket, currentPassword, newPassword, uid }: SocketOpts & { currentPassword: string; newPassword: string; uid: number } ) {
 		return socket.emit( 'user.changePassword', { currentPassword, newPassword, uid } );
 	}

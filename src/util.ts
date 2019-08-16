@@ -91,3 +91,18 @@ export function normalize( str: string, options?: Partial<NormalizeOptions> ) {
 
 	return str;
 }
+
+export function sleep( ms: number ) {
+	return new Promise( resolve => {
+		setTimeout( () => { resolve(); }, ms );
+	} );
+}
+
+export async function timeout( ms: number ): Promise<never> {
+	await sleep( ms );
+	throw new Error( 'Timeout' );
+}
+
+export function getTimeout<T>( fn: PromiseLike<T>, ms: number ) {
+	return Promise.race<T>( [ Promise.resolve( fn ), timeout( ms ) ] );
+}
