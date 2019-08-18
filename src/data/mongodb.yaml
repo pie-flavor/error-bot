@@ -1,3 +1,4 @@
 url: mongodb://localhost:27017
 clientOptions:
   useNewUrlParser: true
+  useUnifiedTopology: true
