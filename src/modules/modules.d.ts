@@ -5,6 +5,8 @@ import { NodeBBSocket } from '~nodebb/socket';
 import { Observer, Observable } from 'rxjs';
 
 declare global {
+	export type CommandFilter = Match<Pick<NodeBB.NewNotificationEvent, 'datetime'|'cid'|'pid'|'tid'|'from'>>;
+
 	export interface CommandParserCommand {
 		export: number;
 		cid: number;
@@ -35,25 +37,31 @@ declare global {
 			retries: number;
 			queue: [ () => Eventually, number ][];
 		};
+		'bash': ModuleParams<'bash'> & {
+			readonly commandFilter?: CommandFilter;
+		};
 		'casino': ModuleParams<'casino'> & {
-			tid: number;
+			readonly commandFilter?: CommandFilter;
 		};
 		'cli-proxy': ModuleParams<'cli-proxy'> & {
 			url: string;
 			tid: number;
 		};
 		'fractal-gen': ModuleParams<'fractal-gen'> & {};
+		'playground': ModuleParams<'playground'> & {
+			readonly commandFilter?: CommandFilter;
+		};
 		'scryfall': ModuleParams<'scryfall'> & {
-			tid?: number|number[];
+			readonly commandFilter?: CommandFilter;
 		};
 		'secret': ModuleParams<'secret'> & {
 			tid: number;
 		};
-		'playground': ModuleParams<'playground'> & {
-			tid: number;
+		'uptime': ModuleParams<'uptime'> & {
+			readonly commandFilter?: CommandFilter;
 		};
 		'xkcd': ModuleParams<'xkcd'> & {
-			tid?: number|number[];
+			readonly commandFilter?: CommandFilter;
 		};
 	}
 

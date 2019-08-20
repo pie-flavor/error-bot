@@ -7,3 +7,9 @@ cycleDelay: 15
 actionDelay: 500
 retryDelay: 5000
 # proxy: http://localhost:55555/
+roles:
+  owner:
+  - 23 # error
+  persona_non_grata:
+  - 141530 # pie_flavor
+  - 143203 # discobot

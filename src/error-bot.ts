@@ -67,14 +67,16 @@ export async function errorBot() {
 	}
 
 	startModule( 'async-queue', { delay: 1000, retries: 5, queue: [] } );
+	startModule( 'bash', {} );
 	startModule( 'fractal-gen', {} );
 	startModule( 'scryfall', {} );
 	startModule( 'xkcd', {} );
 
-	startModule( 'casino', { tid: 14084 } );
+	startModule( 'casino', { commandFilter: { tid: 14084 } } );
 	startModule( 'secret', { tid: 26571 } );
+	startModule( 'uptime', {} );
 	// Error_Bot in the Works
-	startModule( 'playground', { tid: 14084 } );
+	startModule( 'playground', { commandFilter: { tid: 14084 } } );
 
 	// const games = [
 	// 	// TDWTF Plays Beyond Zork

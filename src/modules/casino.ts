@@ -27,7 +27,7 @@ interface UserEntity {
 	cash: number;
 }
 
-export default async function( { moduleName, session, socket, bus, tid }: Params ) {
+export default async function( { moduleName, session, socket, bus, commandFilter = {} }: Params ) {
 	const client = await MongoClient.connect( cfg.url, cfg.clientOptions );
 	disposed.subscribe( () => {
 		client.close();
@@ -41,8 +41,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 		socket.getEvent( 'event:new_notification' )
 		.pipe(
 			takeUntil( disposed ),
-			tapLog( 'casino' ),
-			parseCommands(),
+			parseCommands( commandFilter ),
 			share()
 		);
 
@@ -56,7 +55,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 
 	commands.pipe(
 		filter( e => /^!cash[-_\s]?in\b/.test( e.text ) ),
-		concatMap( async ( { from: uid, pid } ) => {
+		concatMap( async ( { from: uid, pid, tid } ) => {
 			await coll.findOneAndUpdate( { uid: { $eq: uid }, cash: { $lt: 500 } }, { $setOnInsert: { uid }, $set: { cash: 500 } }, { upsert: true } );
 			const user = await getUser( uid );
 			bus.next( { type: 'enqueue_action', action: async () => {
@@ -109,7 +108,7 @@ export default async function( { moduleName, session, socket, bus, tid }: Params
 
 	commands.pipe(
 		filter( e => /^!roul{1,2}et{1,2}e\b/.test( e.text ) ),
-		concatMap( async ( { from: uid, text, pid } ) => {
+		concatMap( async ( { from: uid, text, pid, tid } ) => {
 			let user = await getUser( uid );
 			const args = text.split( /\s+/g ).slice( 1 );
 			const betAmt = parseFloat( ( args[ 0 ] || '' ).replace( /^\$/, '' ) );

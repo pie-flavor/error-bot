@@ -1,4 +1,5 @@
-import 'source-map-support/register';
+import './bootstrap';
+
 import { errorBot } from './error-bot';
 import { Subject } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';

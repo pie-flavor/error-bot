@@ -129,7 +129,6 @@ declare namespace NodeBB {
 		readonly 'cover:thumb:url': string;
 		readonly 'cover:url': string;
 		readonly 'cover:position': string;
-		
 	}
 
 	export interface TopicData {

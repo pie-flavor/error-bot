@@ -19,3 +19,8 @@ declare interface ObjectConstructor {
 declare interface URLSearchParams {
 	entries(): [ string, string ][];
 }
+
+declare module 'moment-duration-format' {
+	import moment from 'moment';
+	export default function momentDurationFormatSetup( m: typeof moment ): void;
+}

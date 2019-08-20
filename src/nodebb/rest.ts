@@ -1,5 +1,5 @@
 import { userAgent, baseUrl } from '~data/config.yaml';
-import rp from 'request-promise';
+import rp, { RequestPromiseOptions } from 'request-promise';
 import { NodeBBSession } from './session';
 import _ from 'lodash';
 import { URL } from 'url';
@@ -8,7 +8,7 @@ import { getAgent } from '~proxy-agent';
 
 type QueryString = object|string;
 
-export function get( { session, path, qs, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, json?: boolean } ) {
+export function get( { session, path, qs, json = false, options = {} }: { session: NodeBBSession, path: string, qs?: QueryString, json?: boolean, options?: Partial<RequestPromiseOptions> } ) {
 	const { jar } = session;
 	const config = session.config.value;
 	const headers = { 'User-Agent': userAgent };
@@ -27,11 +27,12 @@ export function get( { session, path, qs, json = false }: { session: NodeBBSessi
 		jar,
 		headers,
 		qs,
-		json
+		json,
+		...options
 	} );
 }
 
-export function post( { session, path, qs, body, form, formData, json = false }: { session: NodeBBSession, path: string, qs?: QueryString, body?: string|Buffer, form?: Object, formData?: Object, json?: boolean } ) {
+export function post( { session, path, qs, body, form, formData, json = false, options = {} }: { session: NodeBBSession, path: string, qs?: QueryString, body?: string|Buffer, form?: Object, formData?: Object, json?: boolean, options?: Partial<RequestPromiseOptions> } ) {
 	const { jar } = session;
 	const config = session.config.value;
 
@@ -50,7 +51,8 @@ export function post( { session, path, qs, body, form, formData, json = false }:
 		body,
 		form,
 		formData,
-		json
+		json,
+		...options
 	} );
 }
 

@@ -18,6 +18,10 @@ export async function getConfig( { session }: SessionOpts ) {
 	return config;
 }
 
+export function normalizeUsername( username: string ) {
+	return username.toLowerCase().replace( /^@/, '' );
+}
+
 async function ensureConfig( { session }: SessionOpts ) {
 	if( session.config.value == null ) {
 		await getConfig( { session } );
@@ -58,10 +62,15 @@ export function getRoomId( opts: any ): string {
 export async function compose( { session, content }: SessionOpts & { readonly content: string; readonly cid: number; readonly title: string; tags: readonly string[]; readonly thumb: string; } );
 export async function compose( { session, content }: SessionOpts & { readonly content: string; readonly tid: number; } );
 export async function compose( { session, ...form }: SessionOpts & { readonly content: string; } & ( { readonly cid: number; readonly title: string; tags: readonly string[]; readonly thumb: string; } | { readonly tid: number; } ) ) {
-	await rest.post( {
+	return await rest.post( {
 		session,
 		path: '/compose',
-		form
+		form,
+		options: {
+			json: false,
+			followRedirect: false,
+			resolveWithFullResponse: true
+		}
 	} );
 }
 
@@ -678,6 +687,16 @@ export namespace topics {
 }
 
 export namespace user {
+	export async function get( { session, userslug }: SessionOpts & { readonly userslug: string } ): Promise<{
+		readonly uid: number;
+		readonly username: string;
+		readonly userslug: string;
+		readonly banned: boolean;
+		readonly groups: readonly NodeBB.GroupData[];
+	}> {
+		return await rest.get( { session, path: tagUrl`/api/user/${userslug}` } );
+	}
+
 	export function banUsers( { socket, uids, until = 0, reason = '' }: SocketOpts & { uids: readonly number[]; until?: number; reason?: string; } ) {
 		return socket.emit( 'user.banUsers', { uids, until, reason } );
 	}

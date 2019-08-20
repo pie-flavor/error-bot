@@ -99,10 +99,10 @@ async function *getCard( query: string ) {
 	}
 }
 
-export default async function( { moduleName, session, socket, bus, tid }: Params ) {
+export default async function( { moduleName, session, socket, bus, commandFilter = {} }: Params ) {
 	socket.getEvent( 'event:new_notification' )
 	.pipe(
-		parseCommands( { text: /^!(?:magic|mtg)\b/i } ),
+		parseCommands( { text: /^!(?:magic|mtg)\b/i, ...commandFilter } ),
 		rateLimit( 10 ),
 		concatMap( async ( {
 			tid,

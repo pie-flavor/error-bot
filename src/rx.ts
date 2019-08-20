@@ -2,6 +2,7 @@ import { filter, concatMap, map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { filterMatch, filterFalsy } from 'rxjs-util';
 import { normalize } from '~util';
+import { roles } from '~data/config.yaml';
 
 function matchesValue<T, K extends keyof T = keyof T>( value: T[K], filterValue: Match<T>[K] ) {
 	if( filterValue === undefined ) return true;
@@ -42,7 +43,8 @@ type parseCommandRetval<T extends NodeBB.NewNotificationEvent> = { text: string 
 export const parseCommands = <T extends NodeBB.NewNotificationEvent>( ...matches: readonly Match<parseCommandRetval<T>>[] ): { ( s: Observable<T> ): Observable<parseCommandRetval<T>> } =>
 	s =>
 	s.pipe(
-		filter( x => x.type === 'mention' ),
+		filter( ( { type } ) => type === 'mention' ),
+		filter( ( { from } ) => !roles.persona_non_grata.includes( from ) ),
 		concatMap( ( { datetime, cid, pid, tid, bodyLong, from } ) =>
 			of( bodyLong )
 			.pipe(

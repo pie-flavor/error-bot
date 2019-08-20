@@ -15,6 +15,9 @@ declare module '~data/config.yaml' {
 	export const actionDelay: number;
 	export const retryDelay: number;
 	export const proxy: string|undefined;
+	export const roles: {
+		readonly [ key: string ]: readonly number[];
+	};
 }
 
 declare module '~data/mongodb.yaml' {

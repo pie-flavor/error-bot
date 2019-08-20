@@ -70,10 +70,10 @@ class Xkcd extends PureComponent<XkcdProps> {
 	}
 }
 
-export default async function( { moduleName, session, socket, bus, tid }: Params ) {
+export default async function( { moduleName, session, socket, bus, commandFilter = {} }: Params ) {
 	socket.getEvent( 'event:new_notification' )
 	.pipe(
-		parseCommands( { text: /^!xkcd\b/i } ),
+		parseCommands( { text: /^!xkcd\b/i, ...commandFilter } ),
 		rateLimit( 10 ),
 		concatMap( async ( {
 			tid,
