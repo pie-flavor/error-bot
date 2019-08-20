@@ -47,6 +47,9 @@ declare global {
 			url: string;
 			tid: number;
 		};
+		'dilbert': ModuleParams<'dilbert'> & {
+			readonly commandFilter?: CommandFilter;
+		};
 		'fractal-gen': ModuleParams<'fractal-gen'> & {};
 		'playground': ModuleParams<'playground'> & {
 			readonly commandFilter?: CommandFilter;
