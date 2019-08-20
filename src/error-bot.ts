@@ -75,6 +75,7 @@ export async function errorBot() {
 	startModule( 'casino', { commandFilter: { tid: 14084 } } );
 	startModule( 'dilbert', {} );
 	startModule( 'penny-arcade', {} );
+	startModule( 'ohnorobot', {} );
 	startModule( 'secret', { tid: 26571 } );
 	startModule( 'uptime', {} );
 	// Error_Bot in the Works

@@ -51,6 +51,9 @@ declare global {
 			readonly commandFilter?: CommandFilter;
 		};
 		'fractal-gen': ModuleParams<'fractal-gen'> & {};
+		'ohnorobot': ModuleParams<'ohnorobot'> & {
+			readonly commandFilter?: CommandFilter;
+		};
 		'penny-arcade': ModuleParams<'penny-arcade'> & {
 			readonly commandFilter?: CommandFilter;
 		};

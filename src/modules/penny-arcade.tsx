@@ -92,6 +92,7 @@ export default async function( { moduleName, session, socket, bus, commandFilter
 
 			const { window: { document } } = new JSDOM( body );
 			const img = document.querySelector( '#results .img img' ) as HTMLImageElement;
+			if( !img ) return;
 			const name = document.querySelector( '#results h3' ).textContent;
 			const src = new URL( img.src, url ).href;
 			url = new URL( ( document.querySelector( '#results a[href]' ) as HTMLAnchorElement ).href, url ).href;
